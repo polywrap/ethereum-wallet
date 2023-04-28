@@ -1,6 +1,7 @@
 format: 0.3.0
 project:
-  name: ethereum-provider-interface
+  name: ethereum-wallet
   type: interface
 source:
-  schema: ./src/schema.graphql
+  schema: ./polywrap.graphql
+resources: ./resources

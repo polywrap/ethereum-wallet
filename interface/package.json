@@ -1,16 +1,12 @@
 {
-  "name": "@polywrap/ethereum-provider-interface",
-  "description": "Ethereum Provider Interface",
+  "name": "ethereum-wallet-interface",
   "version": "2.0.0",
-  "license": "MIT",
+  "private": true,
   "scripts": {
     "build": "npx polywrap build",
     "deploy": "npx polywrap deploy -o deployment.json"
   },
   "devDependencies": {
-    "polywrap": "0.10.1"
-  },
-  "publishConfig": {
-    "access": "public"
+    "polywrap": "0.10.2"
   }
 }
