@@ -1,0 +1,27 @@
+{
+  "folders": [
+      {
+        "name": "root",
+        "path": "."
+      },
+      {
+        "name": "interface",
+        "path": "interface"
+      },
+      {
+        "name": "python-plugin",
+        "path": "implementations/py"
+      },
+      {
+        "name": "javascript-plugin",
+        "path": "implementations/js"
+      },
+  ],
+  "settings": {
+      "files.exclude": {
+        "**/interface/*": true,
+        "**/implementations/*": true
+      },
+      "liveServer.settings.multiRootWorkspaceName": "root",
+  }
+}

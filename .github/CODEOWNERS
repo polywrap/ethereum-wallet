@@ -1,0 +1,11 @@
+# Default
+* @dOrgJelli
+
+# Interface
+interface @krisbitney @cbrzn
+
+# Js implementation
+implementations/js @krisbitney @cbrzn
+
+# Py implementation
+implementations/py @Niraj-Kamdar @cbrzn

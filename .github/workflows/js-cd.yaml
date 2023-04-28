@@ -1,0 +1,51 @@
+name: ethereum-js-cd
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+    paths:
+      - "implementations/js/**"
+
+jobs:
+  cd:
+    name: ethereum-js-cd
+    if: |
+      github.event.pull_request.merged &&
+      endsWith(github.event.pull_request.title, '/release/js')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Read .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+
+      - name: Install dependencies
+        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
+        working-directory: ./implementations/js
+
+      - name: Build
+        run: yarn build
+        working-directory: ./implementations/js
+
+      - name: Auth into NPM
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm config set //registry.npmjs.org/:_authToken=${{secrets.POLYWRAP_BUILD_BOT_NPM_PAT}}
+          echo $(npm whoami --registry https://registry.npmjs.org/)
+        working-directory: ./implementations/js
+
+      - name: Publish to NPM
+        run: yarn publish:npm
+        working-directory: ./implementations/js
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.POLYWRAP_BUILD_BOT_NPM_PAT}}
