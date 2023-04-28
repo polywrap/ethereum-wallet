@@ -1,4 +1,4 @@
-name: py-ci
+name: ethereum-wallet-py-ci
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   ci:
-    name: py-ci
+    name: ethereum-wallet-py-ci
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
