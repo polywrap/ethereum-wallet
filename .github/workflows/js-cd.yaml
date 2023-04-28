@@ -1,4 +1,4 @@
-name: ethereum-js-cd
+name: ethereum-wallet-js-cd
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   cd:
-    name: ethereum-js-cd
+    name: ethereum-wallet-js-cd
     if: |
       github.event.pull_request.merged &&
       endsWith(github.event.pull_request.title, '/release/js')

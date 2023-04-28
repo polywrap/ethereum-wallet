@@ -1,4 +1,4 @@
-name: py-cd
+name: ethereum-wallet-py-cd
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   cd:
-    name: py-cd
+    name: ethereum-wallet-py-cd
     if: |
       github.event.pull_request.merged &&
       endsWith(github.event.pull_request.title, '/release/py')
