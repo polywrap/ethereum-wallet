@@ -13,7 +13,7 @@ jobs:
     name: ethereum-wallet-js-cd
     if: |
       github.event.pull_request.merged &&
-      endsWith(github.event.pull_request.title, '/release/js')
+      endsWith(github.event.pull_request.title, '/workflows/cd')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
