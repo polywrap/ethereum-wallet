@@ -32,6 +32,7 @@
     "@polywrap/client-js": "0.10.0",
     "@polywrap/cli-js": "0.10.1",
     "eth-ens-namehash": "2.0.8",
+    "ganache": "7.7.7",
     "jest": "26.6.3",
     "js-sha3": "0.8.0",
     "rimraf": "3.0.2",

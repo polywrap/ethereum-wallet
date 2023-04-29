@@ -12,10 +12,7 @@ import {
 } from "./wrap";
 import { Connection, SignerType } from "./Connection";
 import { Connections } from "./Connections";
-import {
-  eth_sendTransaction,
-  eth_signTypedData,
-} from "./rpc";
+import { eth_sendTransaction, eth_signTypedData } from "./rpc";
 
 import { PluginFactory, PluginPackage } from "@polywrap/plugin-js";
 import { ethers } from "ethers";
@@ -82,12 +79,14 @@ export class EthereumProviderPlugin extends Module<ProviderConfig> {
         return JSON.stringify(signature);
       } else {
         // Metamask expects the payload data as string
-        const params = JSON.parse(paramsStr);
-        const req = await provider.send(args.method, [
-          params[0],
-          JSON.stringify(params[1]),
-        ]);
-        return JSON.stringify(req);
+        if (provider.connection.url == "metamask") {
+          const params = JSON.parse(paramsStr);
+          const req = await provider.send(args.method, [
+            params[0],
+            JSON.stringify(params[1]),
+          ]);
+          return JSON.stringify(req);
+        }
       }
     }
 

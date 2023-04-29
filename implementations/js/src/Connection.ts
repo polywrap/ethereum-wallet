@@ -7,11 +7,13 @@ import {
 } from "@ethersproject/providers";
 import { getAddress } from "@ethersproject/address";
 import {KnownNetwork, KnownNetworkId} from "./networks";
+import { EthereumProvider as GanacheProvider } from "ganache"
+
 
 export type Address = string;
 export type AccountIndex = number;
 export type EthereumSigner = Signer | Address | AccountIndex;
-export type EthereumProvider = string | ExternalProvider | JsonRpcProvider;
+export type EthereumProvider = string | ExternalProvider | JsonRpcProvider | GanacheProvider;
 export type EthereumClient = Web3Provider | JsonRpcProvider;
 
 export interface ConnectionConfig {

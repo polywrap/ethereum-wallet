@@ -3,12 +3,14 @@ import { PolywrapClient, ClientConfigBuilder } from "@polywrap/client-js";
 import { BigNumber, Wallet } from "ethers";
 
 import { ethereumProviderPlugin, Connection, Connections } from "../src";
+import { provider as Web3MockProvider } from "ganache"
 
 jest.setTimeout(360000);
 
 describe("Ethereum Plugin", () => {
   let client: PolywrapClient;
   let clientNoSigner: PolywrapClient;
+  let clientWithWeb3Provider: PolywrapClient;
   const uri = "wrap://plugin/ethereum-provider";
 
   beforeAll(async () => {
@@ -40,6 +42,31 @@ describe("Ethereum Plugin", () => {
               })
             },
             defaultNetwork: "binance",
+          })
+        }),
+      ).build()
+    );
+
+    clientWithWeb3Provider = new PolywrapClient(
+      new ClientConfigBuilder().addPackage(
+        uri,
+        ethereumProviderPlugin({
+          connections: new Connections({
+            networks: {
+              testnet: new Connection({
+                provider: Web3MockProvider({
+                  wallet: {
+                    accounts: [
+                      {
+                        balance: "0x100000000000000000000000000000",
+                        secretKey: "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
+                      }
+                    ]
+                  }
+                })
+              })
+            },
+            defaultNetwork: "testnet",
           })
         }),
       ).build()
@@ -127,7 +154,73 @@ describe("Ethereum Plugin", () => {
       expect(response.value).toBe("0xeb91a997a865e2e4a48c098ea519666ed7fa5d9922f4e7e9b6838dc18ecfdab03a568682c3f0a4cb6b78ef0f601117a0de9848c089c94c01f782f067404c1eae1b");
     });
 
-    it("signTypedData", async () => {
+    it("signTypedData with browser provider (EIP 1193 provider)", async () => {
+      const domain = {
+        name: 'Ether Mail',
+        version: '1',
+        chainId: 1,
+        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
+    };
+    
+    // The named list of all type definitions
+    const types = {
+      EIP712Domain: [
+        {
+          type: "string",
+          name: "name"
+        },
+        {
+          type: "string",
+          name: "version"
+        },
+        {
+          type: "uint256",
+          name: "chainId",
+        },
+        {
+          type: "address",
+          name: "verifyingContract",
+        },
+      ],
+      Person: [
+          { name: 'name', type: 'string' },
+          { name: 'wallet', type: 'address' }
+      ],
+      Mail: [
+          { name: 'from', type: 'Person' },
+          { name: 'to', type: 'Person' },
+          { name: 'contents', type: 'string' }
+      ]
+    };
+    
+    // The data to sign
+    const message = {
+        from: {
+            name: 'Cow',
+            wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826'
+        },
+        to: {
+            name: 'Bob',
+            wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'
+        },
+        contents: 'Hello, Bob!'
+    };
+  
+      const response = await clientWithWeb3Provider.invoke<string>({
+        uri,
+        method: "request",
+        args: {
+          method: "eth_signTypedData_v4",
+          params: JSON.stringify(["0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1", { domain, primaryType: 'Mail', types, message }])
+        }
+      });
+      if (response.ok === false) throw response.error;
+      expect(response.value).toBe(
+        "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\""
+      );
+    });
+
+    it("signTypedData with custom signer", async () => {
       const domain = {
         name: 'Ether Mail',
         version: '1',
