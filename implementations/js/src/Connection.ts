@@ -8,6 +8,7 @@ import {
 import { getAddress } from "@ethersproject/address";
 import {KnownNetwork, KnownNetworkId} from "./networks";
 
+
 export type Address = string;
 export type AccountIndex = number;
 export type EthereumSigner = Signer | Address | AccountIndex;
