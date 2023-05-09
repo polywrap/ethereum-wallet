@@ -4,9 +4,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "polywrap-ethereum-provider"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Ethereum provider in python"
 authors = ["Cesar <cesar@polywrap.io>"]
+
+include = ["polywrap_ethereum_provider/wrap/**/*"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
