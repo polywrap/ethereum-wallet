@@ -10,7 +10,7 @@ use super::types::*;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ArgsRequest {
     pub method: String,
-    pub params: Option<JSON::Value>,
+    pub params: Option<String>,
     pub connection: Option<Connection>,
 }
 

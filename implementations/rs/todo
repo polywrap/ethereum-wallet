@@ -1,0 +1,2 @@
+- update the plugins mustache template in rust to use `String` when `JSON` is defined in the .graphql,
+rather than `JSON::Value`
