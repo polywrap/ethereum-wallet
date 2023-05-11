@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use std::{assert_matches::assert_matches, collections::HashMap, str::FromStr, sync::Arc};
 
 use ethers::types::{Bytes, TransactionRequest};
 use polywrap_client::client::PolywrapClient;
@@ -104,4 +104,24 @@ fn get_handle_eth_call() {
         response.unwrap(),
         "0x0000000000000000000000000000000000000000000000000000000000000002"
     );
+}
+
+#[test]
+fn get_block_by_number() {
+    let client = get_client();
+    let response = client.invoke::<String>(
+        &Uri::try_from("plugin/ethereum-wallet").unwrap(),
+        "request",
+        Some(&msgpack!({
+            "method": "eth_getBlockByNumber",
+            "params": "[\"latest\",false]",
+        })),
+        None,
+        None,
+    );
+    if let Ok(r) = response {
+        assert_matches!(to_value(r), Ok(_))
+    } else {
+        panic!("{}", response.unwrap_err())
+    }
 }

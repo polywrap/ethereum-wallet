@@ -1,12 +1,12 @@
 use crate::wrap::wrap_info::get_manifest;
 use connections::Connections;
 use ethers::providers::{Http, Provider};
-use handler::handle_call_params;
+use handler::{handle_call_params, handle_get_block_by_number_params, handle_send_params};
 use polywrap_core::invoker::Invoker;
 use polywrap_plugin::{
     error::PluginError,
     implementor::plugin_impl,
-    JSON::{self, from_str, Value},
+    JSON::{self, from_str, to_string, Value},
 };
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -35,15 +35,22 @@ impl EthereumWalletPlugin {
 
     fn parse_parameters(&self, method: &str, params: &Option<String>) -> Vec<Value> {
         if self.is_transaction_method(method) {
-            let mut call_parameters: Vec<Value> = vec![];
-            if let Some(p) = params {
-                return handle_call_params(p, &mut call_parameters);
+            if let Some(parameters) = params {
+                match method {
+                    "eth_call" => handle_call_params(parameters),
+                    _ => handle_send_params(parameters),
+                }
             } else {
-                panic!("Eth call needs arguments")
+                panic!("Method {method} needs params")
             }
         } else {
             if let Some(parameters) = params {
-                from_str(&parameters).unwrap()
+                match method {
+                    "eth_getBlockByNumber" => handle_get_block_by_number_params(parameters),
+                    "eth_feeHistory" => vec![],
+                    "eth_signTypedData_v4" => vec![],
+                    _ => from_str(&parameters).unwrap(),
+                }
             } else {
                 vec![]
             }
@@ -64,8 +71,18 @@ impl Module for EthereumWalletPlugin {
         let method = args.method.as_str();
         let parameters = self.parse_parameters(method, &args.params);
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        let response = Runtime::block_on(&runtime, provider.request(method, parameters));
-        Ok(response.unwrap())
+        let response = Runtime::block_on(
+            &runtime,
+            provider.request::<Vec<Value>, Value>(method, parameters),
+        );
+
+        let result = response.map_err(|e| e.to_string()).unwrap();
+
+        match result {
+            Value::String(r) => Ok(r),
+            Value::Object(object) => to_string(&object).map_err(|e| PluginError::JSONError(e)),
+            _ => Ok("".to_string()),
+        }
     }
 
     fn wait_for_transaction(
