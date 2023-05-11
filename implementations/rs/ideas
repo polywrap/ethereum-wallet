@@ -1,0 +1,9 @@
+1- use a generic:
+   - `class MyGeneric<T> { ... }``
+   - this will make that, when conusming it, you need
+   to pass the implemented trait as argument (turbofish)
+2- trait object: Box<dyn Trait> or Arc<dyn Trait>
+
+- the main difference to use which one is that trait object
+accepts (or its easier) to interact with different implemetnations
+of the trait, with the generic one you can just pass one
