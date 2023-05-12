@@ -1,0 +1,51 @@
+name: ethereum-wallet-plugin-rs-cd
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+    paths:
+      - "implementations/rs/**"
+
+jobs:
+  cd:
+    name: ethereum-wallet-plugin-rs-cd
+    if: |
+      github.event.pull_request.merged &&
+      endsWith(github.event.pull_request.title, '/release/rs') &&
+      github.event.pull_request.user.login != 'github-actions'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Read .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+
+      - name: Install dependencies
+        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
+        working-directory: ./implementations/rs
+
+      - name: Codegen
+        run: yarn codegen
+        working-directory: ./implementations/rs
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Publish
+        run: cargo publish --token {{ env.CRATES_TOKEN }}
+        working-directory: ./implementations/rs
+        env:
+          CRATES_TOKEN: ${{ secrets.POLYWRAP_BUILD_BOT_CRATES_PAT }}
