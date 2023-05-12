@@ -1,7 +1,20 @@
 use crate::networks::{get_name, KnownNetwork};
-use ethers::providers::{Http, Provider};
+use ethers::{
+    providers::{Http, Provider},
+    signers::LocalWallet,
+};
 use std::fmt::Debug;
+use thiserror::Error;
 
+#[derive(Error, Debug)]
+pub enum WalletError {
+    #[error("Not signer given")]
+    NoSignerFound,
+    #[error("Wrong string format in signer")]
+    WrongSignerGiven,
+}
+
+#[derive(Clone)]
 pub struct Connection {
     pub provider: Provider<Http>,
     pub signer: Option<String>,
@@ -63,7 +76,16 @@ impl Connection {
         }
     }
 
-    pub fn has_signer(self) -> bool {
-        self.signer.is_some()
+    pub fn get_signer(&self) -> Result<LocalWallet, WalletError> {
+        if let Some(s) = &self.signer {
+            let wallet = s.parse::<LocalWallet>();
+            if let Ok(w) = wallet {
+                Ok(w)
+            } else {
+                Err(WalletError::WrongSignerGiven)
+            }
+        } else {
+            Err(WalletError::NoSignerFound)
+        }
     }
 }

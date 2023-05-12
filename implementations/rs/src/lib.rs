@@ -1,12 +1,19 @@
 use crate::wrap::wrap_info::get_manifest;
 use connections::Connections;
-use ethers::providers::{Http, Provider};
-use handler::{handle_call_params, handle_get_block_by_number_params, handle_send_params};
+use ethers::{
+    providers::{Http, Provider},
+    signers::{LocalWallet, Signer},
+    types::transaction::eip712::TypedData,
+};
+use handler::{
+    handle_call_params, handle_get_block_by_number_params, handle_send_params,
+    handle_sign_typed_data_args,
+};
 use polywrap_core::invoker::Invoker;
 use polywrap_plugin::{
     error::PluginError,
     implementor::plugin_impl,
-    JSON::{self, from_str, to_string, Value},
+    JSON::{self, from_str, from_value, to_string, Value},
 };
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -48,7 +55,7 @@ impl EthereumWalletPlugin {
                 match method {
                     "eth_getBlockByNumber" => handle_get_block_by_number_params(parameters),
                     "eth_feeHistory" => vec![],
-                    "eth_signTypedData_v4" => vec![],
+                    "eth_signTypedData_v4" => handle_sign_typed_data_args(parameters),
                     _ => from_str(&parameters).unwrap(),
                 }
             } else {
@@ -67,22 +74,34 @@ impl EthereumWalletPlugin {
 impl Module for EthereumWalletPlugin {
     fn request(&mut self, args: &ArgsRequest, _: Arc<dyn Invoker>) -> Result<String, PluginError> {
         let connection = self.connections.get_connection(args.connection.clone());
-        let provider: Provider<Http> = connection.provider;
+        let provider: &Provider<Http> = &connection.provider;
         let method = args.method.as_str();
         let parameters = self.parse_parameters(method, &args.params);
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        let response = Runtime::block_on(
-            &runtime,
-            provider.request::<Vec<Value>, Value>(method, parameters),
-        );
+        match method {
+            "eth_signTypedData_v4" => {
+                let signer = connection.get_signer().unwrap();
+                let typed_data: TypedData = from_value(parameters[1].clone()).unwrap();
+                let hash = Runtime::block_on(&runtime, signer.sign_typed_data(&typed_data));
+                return Ok(hash.unwrap().to_string());
+            }
+            _ => {
+                let response = Runtime::block_on(
+                    &runtime,
+                    provider.request::<Vec<Value>, Value>(method, parameters),
+                );
 
-        let result = response.map_err(|e| e.to_string()).unwrap();
+                let result = response.map_err(|e| e.to_string()).unwrap();
 
-        match result {
-            Value::String(r) => Ok(r),
-            Value::Object(object) => to_string(&object).map_err(|e| PluginError::JSONError(e)),
-            _ => Ok("".to_string()),
-        }
+                return match result {
+                    Value::String(r) => Ok(r),
+                    Value::Object(object) => {
+                        to_string(&object).map_err(|e| PluginError::JSONError(e))
+                    }
+                    _ => Ok("".to_string()),
+                };
+            }
+        };
     }
 
     fn wait_for_transaction(

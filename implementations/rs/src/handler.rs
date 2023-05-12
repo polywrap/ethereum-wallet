@@ -1,4 +1,4 @@
-use ethers::types::{transaction::eip2718::TypedTransaction, TransactionRequest};
+use ethers::types::{transaction::{eip2718::TypedTransaction, eip712::TypedData}, TransactionRequest};
 use polywrap_plugin::JSON::{from_str, to_value, Value};
 use serde::{Deserialize, Serialize};
 
@@ -62,5 +62,25 @@ pub fn handle_get_block_by_number_params(values: &String) -> Vec<Value> {
     } else {
         let err = params_value.unwrap_err();
         panic!("Error parsing eth_call paremeters: {}", err)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+enum SignTypedDataArgs {
+    Address(String),
+    TypedData(TypedData),
+}
+
+pub fn handle_sign_typed_data_args(values: &String) -> Vec<Value> {
+    let params_value = from_str::<Vec<SignTypedDataArgs>>(values.as_str());
+
+    if let Ok(v) = params_value {
+        v.iter()
+            .map(|value| to_value(value).unwrap())
+            .collect::<Vec<Value>>()
+    } else {
+        let err = params_value.unwrap_err();
+        panic!("Error parsing eth_signTypedData paremeters: {}", err)
     }
 }

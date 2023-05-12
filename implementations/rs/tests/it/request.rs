@@ -13,13 +13,18 @@ use polywrap_ethereum_wallet_plugin::{
 use polywrap_msgpack::msgpack;
 use polywrap_plugin::{
     package::PluginPackage,
-    JSON::{to_value, Value},
+    JSON::{json, to_value, Value},
 };
 use serde::{Deserialize, Serialize};
 
 fn get_client() -> PolywrapClient {
-    let connection =
-        Connection::new("https://bsc-dataseed1.binance.org/".to_string(), None).unwrap();
+    let connection = Connection::new(
+        "https://bsc-dataseed1.binance.org/".to_string(),
+        Some(String::from(
+            "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
+        )),
+    )
+    .unwrap();
     let connections = Connections::new(
         HashMap::from([("binance".to_string(), connection)]),
         Some("binance".to_string()),
@@ -124,4 +129,89 @@ fn get_block_by_number() {
     } else {
         panic!("{}", response.unwrap_err())
     }
+}
+
+#[test]
+fn sign_typed_data() {
+    let json = json!({
+      "types": {
+        "EIP712Domain": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "type": "string"
+          },
+          {
+            "name": "chainId",
+            "type": "uint256"
+          },
+          {
+            "name": "verifyingContract",
+            "type": "address"
+          }
+        ],
+        "Person": [
+          {
+              "name": "name",
+              "type": "string"
+          },
+          {
+              "name": "wallet",
+              "type": "address"
+          }
+        ],
+        "Mail": [
+            {
+                "name": "from",
+                "type": "Person"
+            },
+            {
+                "name": "to",
+                "type": "Person"
+            },
+            {
+                "name": "contents",
+                "type": "string"
+            }
+          ]
+      },
+      "primaryType": "Mail",
+      "domain": {
+        "name": "Ether Mail",
+        "version": "1",
+        "chainId": 1,
+        "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+      },
+      "message": {
+        "from": {
+            "name": "Cow",
+            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        },
+        "to": {
+            "name": "Bob",
+            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        },
+        "contents": "Hello, Bob!"
+      }
+    });
+
+    let params = Value::Array(vec![
+        Value::String("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".to_string()),
+        json,
+    ]);
+    let client = get_client();
+    let response = client.invoke::<String>(
+        &Uri::try_from("plugin/ethereum-wallet").unwrap(),
+        "request",
+        Some(&msgpack!({
+            "method": "eth_signTypedData_v4",
+            "params": params.to_string(),
+        })),
+        None,
+        None,
+    );
+    assert_eq!(response.unwrap(), "12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c".to_string());
 }
