@@ -30,14 +30,11 @@ impl Connection {
     pub fn new(provider: String, signer: Option<String>) -> Result<Self, String> {
         let provider = Provider::<Http>::try_from(provider);
         if let Err(e) = provider {
-            return Err(format!(
-                "Error getting provider from network: {}",
-                e.to_string()
-            ));
+            return Err(format!("Error getting provider from network: {}", e));
         } else {
             Ok(Self {
                 provider: provider.unwrap(),
-                signer: signer,
+                signer,
             })
         }
     }
@@ -47,7 +44,7 @@ impl Connection {
         if let Err(e) = connection {
             return Err(format!(
                 "Error creating connection in from_node method: {}",
-                e.to_string()
+                e
             ));
         } else {
             connection
@@ -57,7 +54,7 @@ impl Connection {
     pub fn from_network(network: KnownNetwork, signer: Option<String>) -> Result<Self, String> {
         let name = get_name(network);
 
-        if let None = name {
+        if name.is_none() {
             return Err(format!("Given network: {:#?} is not supported", network));
         };
 
@@ -69,7 +66,7 @@ impl Connection {
         if let Err(e) = connection {
             return Err(format!(
                 "Error creating connection in from_network method: {}",
-                e.to_string()
+                e
             ));
         } else {
             connection

@@ -1,4 +1,7 @@
-use ethers::types::{transaction::{eip2718::TypedTransaction, eip712::TypedData}, TransactionRequest};
+use ethers::types::{
+    transaction::{eip2718::TypedTransaction, eip712::TypedData},
+    TransactionRequest,
+};
 use polywrap_plugin::JSON::{from_str, to_value, Value};
 use serde::{Deserialize, Serialize};
 
@@ -16,8 +19,8 @@ enum EthCallParamaterTypes {
 }
 
 //@TODO: Pass a generic to this handle params function and re-use it with different types
-pub fn handle_call_params(values: &String) -> Vec<Value> {
-    let params_value = from_str::<Vec<EthCallParamaterTypes>>(values.as_str());
+pub fn handle_call_params(values: &str) -> Vec<Value> {
+    let params_value = from_str::<Vec<EthCallParamaterTypes>>(values);
 
     if let Ok(v) = params_value {
         v.iter()
@@ -29,8 +32,8 @@ pub fn handle_call_params(values: &String) -> Vec<Value> {
     }
 }
 
-pub fn handle_send_params(values: &String) -> Vec<Value> {
-    let params_value = from_str::<TypedTransaction>(values.as_str());
+pub fn handle_send_params(values: &str) -> Vec<Value> {
+    let params_value = from_str::<TypedTransaction>(values);
     if let Ok(v) = params_value {
         vec![to_value(v).unwrap()]
     } else {
@@ -52,8 +55,8 @@ enum GetBlockByNumberParamaterTypes {
     Flag(bool),
 }
 
-pub fn handle_get_block_by_number_params(values: &String) -> Vec<Value> {
-    let params_value = from_str::<Vec<GetBlockByNumberParamaterTypes>>(values.as_str());
+pub fn handle_get_block_by_number_params(values: &str) -> Vec<Value> {
+    let params_value = from_str::<Vec<GetBlockByNumberParamaterTypes>>(values);
 
     if let Ok(v) = params_value {
         v.iter()
@@ -72,8 +75,8 @@ enum SignTypedDataArgs {
     TypedData(TypedData),
 }
 
-pub fn handle_sign_typed_data_args(values: &String) -> Vec<Value> {
-    let params_value = from_str::<Vec<SignTypedDataArgs>>(values.as_str());
+pub fn handle_sign_typed_data_args(values: &str) -> Vec<Value> {
+    let params_value = from_str::<Vec<SignTypedDataArgs>>(values);
 
     if let Ok(v) = params_value {
         v.iter()

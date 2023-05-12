@@ -23,8 +23,8 @@ fn get_client() -> PolywrapClient {
     )
     .unwrap();
     let connections = Connections::new(
-        HashMap::from([("binance".to_string(), connection)]),
-        Some("binance".to_string()),
+        HashMap::from([("bsc".to_string(), connection)]),
+        Some("bsc".to_string()),
     );
 
     let wallet_plugin = EthereumWalletPlugin::new(connections);
@@ -60,6 +60,7 @@ fn get_signer_address() {
 }
 
 #[test]
+// @TODO(cbrzn): Remove ignore once https://github.com/polywrap/rust-client/issues/59 its fixed
 #[ignore]
 fn sign_message() {
     let client = get_client();

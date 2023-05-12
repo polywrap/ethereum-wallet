@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 use polywrap_core::invoker::Invoker;
-use polywrap_plugin::{error::PluginError, module::PluginModule, JSON};
+use polywrap_plugin::{error::PluginError, module::PluginModule};
 use serde::{Serialize, Deserialize};
 use super::types::*;
 

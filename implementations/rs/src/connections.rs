@@ -18,7 +18,7 @@ impl Connections {
         let mainnet_string = String::from("mainnet");
         let (default_network, connections) = if let Some(default_network) = default_network {
             (default_network, connections)
-        } else if let Some(_) = connections.get("mainnet") {
+        } else if connections.get("mainnet").is_some() {
             (mainnet_string, connections)
         } else {
             let mainnet_connection = Connection::from_network(KnownNetwork::Mainnet, None).unwrap();
@@ -27,8 +27,8 @@ impl Connections {
         };
 
         Self {
-            connections: connections,
-            default_network: default_network,
+            connections,
+            default_network,
         }
     }
 

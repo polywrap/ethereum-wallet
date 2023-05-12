@@ -40,9 +40,7 @@ pub struct EthereumWalletPlugin {
 
 impl EthereumWalletPlugin {
     pub fn new(connections: Connections) -> Self {
-        Self {
-            connections: connections,
-        }
+        Self { connections }
     }
 
     fn parse_parameters(&self, method: &str, params: &Option<String>) -> Vec<Value> {
@@ -55,17 +53,15 @@ impl EthereumWalletPlugin {
             } else {
                 panic!("Method {method} needs params")
             }
-        } else {
-            if let Some(parameters) = params {
-                match method {
-                    "eth_getBlockByNumber" => handle_get_block_by_number_params(parameters),
-                    "eth_feeHistory" => vec![],
-                    "eth_signTypedData_v4" => handle_sign_typed_data_args(parameters),
-                    _ => from_str(&parameters).unwrap(),
-                }
-            } else {
-                vec![]
+        } else if let Some(parameters) = params {
+            match method {
+                "eth_getBlockByNumber" => handle_get_block_by_number_params(parameters),
+                "eth_feeHistory" => vec![],
+                "eth_signTypedData_v4" => handle_sign_typed_data_args(parameters),
+                _ => from_str(parameters).unwrap(),
             }
+        } else {
+            vec![]
         }
     }
 
@@ -88,7 +84,7 @@ impl Module for EthereumWalletPlugin {
                 let signer = connection.get_signer().unwrap();
                 let typed_data: TypedData = from_value(parameters[1].clone()).unwrap();
                 let hash = Runtime::block_on(&runtime, signer.sign_typed_data(&typed_data));
-                return Ok(hash.unwrap().to_string());
+                Ok(hash.unwrap().to_string())
             }
             "eth_sendTransaction" => {
                 let signer = connection.get_signer().unwrap();
@@ -105,15 +101,13 @@ impl Module for EthereumWalletPlugin {
 
                 let result = response.map_err(|e| e.to_string()).unwrap();
 
-                return match result {
+                match result {
                     Value::String(r) => Ok(r),
-                    Value::Object(object) => {
-                        to_string(&object).map_err(|e| PluginError::JSONError(e))
-                    }
+                    Value::Object(object) => to_string(&object).map_err(PluginError::JSONError),
                     _ => Ok("".to_string()),
-                };
+                }
             }
-        };
+        }
     }
 
     fn wait_for_transaction(
@@ -135,15 +129,7 @@ impl Module for EthereumWalletPlugin {
         let runtime: Runtime = tokio::runtime::Runtime::new().unwrap();
         let tx = Runtime::block_on(&runtime, pending_transaction);
 
-        if let Ok(response) = tx {
-            if let Some(_) = response {
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        } else {
-            Ok(false)
-        }
+        Ok(matches!(tx, Ok(Some(_))))
     }
 
     fn signer_address(
@@ -153,18 +139,18 @@ impl Module for EthereumWalletPlugin {
     ) -> Result<Option<String>, PluginError> {
         let connection = self.connections.get_connection(args.connection.clone());
         let signer = connection.get_signer();
-        return match signer {
+        match signer {
             Ok(s) => Ok(Some(format!("0x{:x}", s.address()))),
             Err(e) => {
                 if let WalletError::WrongSignerGiven = e {
-                    return Err(PluginError::ModuleError(
+                    Err(PluginError::ModuleError(
                         "Signer private key not valid".to_string(),
-                    ));
+                    ))
                 } else {
                     Ok(None)
                 }
             }
-        };
+        }
     }
 
     fn sign_message(
@@ -179,15 +165,15 @@ impl Module for EthereumWalletPlugin {
                 let runtime: Runtime = tokio::runtime::Runtime::new().unwrap();
                 let response = Runtime::block_on(&runtime, s.sign_message(args.message.to_vec()));
                 if let Ok(signature) = response {
-                    return Ok(format!("{:#}", signature));
+                    Ok(format!("{:#}", signature))
                 } else {
-                    return Err(PluginError::ModuleError(
+                    Err(PluginError::ModuleError(
                         "Error in sign message method".to_string(),
-                    ));
+                    ))
                 }
             }
-            Err(_) => return Err(PluginError::ModuleError("Signer no available".to_string())),
-        };
+            Err(_) => Err(PluginError::ModuleError("Signer no available".to_string())),
+        }
     }
 
     fn sign_transaction(
@@ -205,14 +191,14 @@ impl Module for EthereumWalletPlugin {
 
                 let response = Runtime::block_on(&runtime, s.sign_transaction(&tx));
                 if let Ok(signature) = response {
-                    return Ok(format!("{:#}", signature));
+                    Ok(format!("{:#}", signature))
                 } else {
-                    return Err(PluginError::ModuleError(
+                    Err(PluginError::ModuleError(
                         "Error in sign transaction method".to_string(),
-                    ));
+                    ))
                 }
             }
-            Err(_) => return Err(PluginError::ModuleError("Signer no available".to_string())),
-        };
+            Err(_) => Err(PluginError::ModuleError("Signer no available".to_string())),
+        }
     }
 }
