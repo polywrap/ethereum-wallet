@@ -8,6 +8,7 @@ use polywrap_core::{
 use polywrap_ethereum_wallet_plugin::{
     connection::Connection, connections::Connections, EthereumWalletPlugin,
 };
+use polywrap_msgpack::msgpack;
 use polywrap_plugin::package::PluginPackage;
 use std::{collections::HashMap, sync::Arc};
 
@@ -55,5 +56,24 @@ fn get_signer_address() {
     assert_eq!(
         response.unwrap(),
         "0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1".to_string()
+    )
+}
+
+#[test]
+#[ignore]
+fn sign_message() {
+    let client = get_client();
+    let response = client.invoke::<String>(
+        &Uri::try_from("plugin/ethereum-wallet").unwrap(),
+        "signMessage",
+        Some(&msgpack!({
+            "message": "Hello World".as_bytes()
+        })),
+        None,
+        None,
+    );
+    assert_eq!(
+        response.unwrap(),
+        "0xa4708243bf782c6769ed04d83e7192dbcf4fc131aa54fde9d889d8633ae39dab03d7babd2392982dff6bc20177f7d887e27e50848c851320ee89c6c63d18ca761c".to_string()
     )
 }

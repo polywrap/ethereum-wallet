@@ -5,7 +5,10 @@ use ethers::{
     prelude::SignerMiddleware,
     providers::{Http, Middleware, PendingTransaction, Provider},
     signers::Signer,
-    types::{transaction::{eip712::TypedData}, TransactionRequest, TxHash}
+    types::{
+        transaction::{eip2718::TypedTransaction, eip712::TypedData},
+        TransactionRequest, TxHash,
+    },
 };
 use handler::{
     handle_call_params, handle_get_block_by_number_params, handle_send_params,
@@ -15,7 +18,7 @@ use polywrap_core::invoker::Invoker;
 use polywrap_plugin::{
     error::PluginError,
     implementor::plugin_impl,
-    JSON::{self, from_str, from_value, to_string, Value},
+    JSON::{self, from_str, from_value, to_string, to_value, Value},
 };
 use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Runtime;
@@ -176,7 +179,7 @@ impl Module for EthereumWalletPlugin {
                 let runtime: Runtime = tokio::runtime::Runtime::new().unwrap();
                 let response = Runtime::block_on(&runtime, s.sign_message(args.message.to_vec()));
                 if let Ok(signature) = response {
-                    return Ok(format!("0x{}", signature.to_string()));
+                    return Ok(format!("{:#}", signature));
                 } else {
                     return Err(PluginError::ModuleError(
                         "Error in sign message method".to_string(),
@@ -189,9 +192,27 @@ impl Module for EthereumWalletPlugin {
 
     fn sign_transaction(
         &mut self,
-        _args: &ArgsSignTransaction,
+        args: &ArgsSignTransaction,
         _: Arc<dyn Invoker>,
     ) -> Result<String, PluginError> {
-        todo!()
+        let connection = self.connections.get_connection(args.connection.clone());
+        let signer = connection.get_signer();
+        match signer {
+            Ok(s) => {
+                let runtime: Runtime = tokio::runtime::Runtime::new().unwrap();
+                let tx: TypedTransaction =
+                    from_value(to_value(args.rlp.to_vec()).unwrap()).unwrap();
+
+                let response = Runtime::block_on(&runtime, s.sign_transaction(&tx));
+                if let Ok(signature) = response {
+                    return Ok(format!("{:#}", signature));
+                } else {
+                    return Err(PluginError::ModuleError(
+                        "Error in sign transaction method".to_string(),
+                    ));
+                }
+            }
+            Err(_) => return Err(PluginError::ModuleError("Signer no available".to_string())),
+        };
     }
 }
