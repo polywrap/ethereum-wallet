@@ -67,27 +67,6 @@ lazy_static! {
     };
 }
 
-pub fn has(obj: &str) -> bool {
-    ALIASES.contains_key(obj)
-}
-
-pub fn chain_ids() -> Vec<i64> {
-    vec![
-        KnownNetwork::Mainnet as i64,
-        KnownNetwork::Goerli as i64,
-        KnownNetwork::Sepolia as i64,
-        KnownNetwork::BinanceSmartChain as i64,
-        KnownNetwork::CeloMainnet as i64,
-        KnownNetwork::CeloAlfajores as i64,
-        KnownNetwork::AvalancheMainnet as i64,
-        KnownNetwork::AvalancheFuji as i64,
-        KnownNetwork::PalmMainnet as i64,
-        KnownNetwork::PalmTestnet as i64,
-        KnownNetwork::AuroraMainnet as i64,
-        KnownNetwork::AuroraTestnet as i64,
-    ]
-}
-
 pub fn from_alias(alias: &str) -> Option<KnownNetwork> {
     ALIASES.get(alias).cloned()
 }

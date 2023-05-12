@@ -1,50 +1,12 @@
-use std::{assert_matches::assert_matches, collections::HashMap, str::FromStr, sync::Arc};
+use std::{assert_matches::assert_matches, str::FromStr};
 
 use ethers::types::{Bytes, TransactionRequest};
-use polywrap_client::client::PolywrapClient;
-use polywrap_core::{
-    client::ClientConfig,
-    resolvers::static_resolver::{StaticResolver, StaticResolverLike},
-    uri::Uri,
-};
-use polywrap_ethereum_wallet_plugin::{
-    connection::Connection, connections::Connections, EthereumWalletPlugin,
-};
+use polywrap_core::uri::Uri;
 use polywrap_msgpack::msgpack;
-use polywrap_plugin::{
-    package::PluginPackage,
-    JSON::{json, to_value, Value},
-};
+use polywrap_plugin::JSON::{json, to_value, Value};
 use serde::{Deserialize, Serialize};
 
-fn get_client() -> PolywrapClient {
-    let connection = Connection::new(
-        "https://bsc-dataseed1.binance.org/".to_string(),
-        Some(String::from(
-            "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
-        )),
-    )
-    .unwrap();
-    let connections = Connections::new(
-        HashMap::from([("binance".to_string(), connection)]),
-        Some("binance".to_string()),
-    );
-
-    let wallet_plugin = EthereumWalletPlugin::new(connections);
-    let plugin_pkg: PluginPackage = wallet_plugin.into();
-    let package = Arc::new(plugin_pkg);
-
-    let resolver = StaticResolver::from(vec![StaticResolverLike::Package(
-        Uri::try_from("plugin/ethereum-wallet").unwrap(),
-        package,
-    )]);
-
-    PolywrapClient::new(ClientConfig {
-        resolver: Arc::new(resolver),
-        interfaces: None,
-        envs: None,
-    })
-}
+use crate::get_client;
 
 #[test]
 fn get_chain_id() {
@@ -133,7 +95,7 @@ fn get_block_by_number() {
 
 #[test]
 fn sign_typed_data() {
-    let json = json!({
+    let payload = json!({
       "types": {
         "EIP712Domain": [
           {
@@ -200,7 +162,7 @@ fn sign_typed_data() {
 
     let params = Value::Array(vec![
         Value::String("0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".to_string()),
-        json,
+        payload,
     ]);
     let client = get_client();
     let response = client.invoke::<String>(
