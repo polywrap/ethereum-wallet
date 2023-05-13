@@ -68,7 +68,7 @@ lazy_static! {
 }
 
 pub fn from_alias(alias: &str) -> Option<KnownNetwork> {
-    ALIASES.get(alias).cloned()
+    ALIASES.get(&alias.to_lowercase()).cloned()
 }
 
 pub fn get_name(network: KnownNetwork) -> Option<&'static str> {
