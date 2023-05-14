@@ -10,18 +10,16 @@ use ethers::{
         TransactionRequest, TxHash,
     },
 };
-use handler::{
-    handle_call_params, handle_get_block_by_number_params, handle_send_params,
-    handle_sign_typed_data_args,
-};
 use polywrap_core::invoker::Invoker;
 use polywrap_plugin::{
     error::PluginError,
     implementor::plugin_impl,
     JSON::{self, from_str, from_value, to_string, to_value, Value},
 };
+use serde::{Deserialize, Serialize};
 use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Runtime;
+use types::{EthCallParamaterTypes, GetBlockByNumberParamaterTypes, SignTypedDataArgs};
 use wrap::module::{
     ArgsRequest, ArgsSignMessage, ArgsSignTransaction, ArgsSignerAddress, ArgsWaitForTransaction,
     Module,
@@ -29,8 +27,8 @@ use wrap::module::{
 
 pub mod connection;
 pub mod connections;
-mod handler;
 mod networks;
+mod types;
 mod wrap;
 
 #[derive(Debug)]
@@ -38,36 +36,55 @@ pub struct EthereumWalletPlugin {
     connections: Connections,
 }
 
-impl EthereumWalletPlugin {
-    pub fn new(connections: Connections) -> Self {
-        Self { connections }
-    }
+struct Params;
 
-    fn parse_parameters(&self, method: &str, params: &Option<String>) -> Vec<Value> {
-        if self.is_transaction_method(method) {
-            if let Some(parameters) = params {
+impl Params {
+    fn sanatize(method: &str, params: &Option<String>) -> Vec<Value> {
+        if Params::is_transaction_method(method) {
+            if let Some(params) = params {
                 match method {
-                    "eth_call" => handle_call_params(parameters),
-                    _ => handle_send_params(parameters),
+                    "eth_call" => Params::parse::<EthCallParamaterTypes>(params),
+                    _ => Params::parse::<TypedTransaction>(params),
                 }
             } else {
                 panic!("Method {method} needs params")
             }
-        } else if let Some(parameters) = params {
+        } else if let Some(params) = params {
             match method {
-                "eth_getBlockByNumber" => handle_get_block_by_number_params(parameters),
+                "eth_getBlockByNumber" => {
+                    Params::parse::<GetBlockByNumberParamaterTypes>(params)
+                }
                 "eth_feeHistory" => vec![],
-                "eth_signTypedData_v4" => handle_sign_typed_data_args(parameters),
-                _ => from_str(parameters).unwrap(),
+                "eth_signTypedData_v4" => Params::parse::<SignTypedDataArgs>(params),
+                _ => from_str(params).unwrap(),
             }
         } else {
             vec![]
         }
     }
 
-    fn is_transaction_method(&self, method: &str) -> bool {
+    fn parse<T: Serialize + for<'a> Deserialize<'a> + std::fmt::Debug>(values: &str) -> Vec<Value> {
+        let params_value = from_str::<Vec<T>>(values);
+
+        if let Ok(v) = params_value {
+            v.iter()
+                .map(|value| to_value(value).unwrap())
+                .collect::<Vec<Value>>()
+        } else {
+            let err = params_value.unwrap_err();
+            panic!("Error parsing paremeters: {}", err)
+        }
+    }
+
+    fn is_transaction_method(method: &str) -> bool {
         let transaction_methods = ["eth_sendTransaction", "eth_estimateGas", "eth_call"];
         transaction_methods.contains(&method)
+    }
+}
+
+impl EthereumWalletPlugin {
+    pub fn new(connections: Connections) -> Self {
+        Self { connections }
     }
 }
 
@@ -77,7 +94,7 @@ impl Module for EthereumWalletPlugin {
         let connection = self.connections.get_connection(args.connection.clone());
         let provider: &Provider<Http> = &connection.provider;
         let method = args.method.as_str();
-        let parameters = self.parse_parameters(method, &args.params);
+        let parameters = Params::sanatize(method, &args.params);
         let runtime = tokio::runtime::Runtime::new().unwrap();
         match method {
             "eth_signTypedData_v4" => {
@@ -123,7 +140,8 @@ impl Module for EthereumWalletPlugin {
 
         // pending_transaction.confirmations(args.confirmations.try_into().unwrap());
         // if let Some(t) = args.timeout {
-        //     pending_transaction.interval(t.try_into().unwrap());
+        //     let duration = Duration::new(0, t);
+        //     pending_transaction.interval(duration);
         // };
 
         let runtime: Runtime = tokio::runtime::Runtime::new().unwrap();
