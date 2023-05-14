@@ -17,7 +17,6 @@ jobs:
       - name: Read .nvmrc
         run: echo ::set-output name=NVMRC::$(cat .nvmrc)
         id: nvm
-        working-directory: ./implementations/rs
 
       - name: Setup Node.js
         uses: actions/setup-node@master
@@ -26,10 +25,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
-        working-directory: ./implementations/rs
-
-      - name: Codegen
-        run: yarn codegen
         working-directory: ./implementations/rs
 
       - name: Install Rust

@@ -34,10 +34,6 @@ jobs:
         run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
         working-directory: ./implementations/rs
 
-      - name: Codegen
-        run: yarn codegen
-        working-directory: ./implementations/rs
-
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
