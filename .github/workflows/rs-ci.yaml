@@ -6,37 +6,7 @@ on:
       - "implementations/rs/**"
 
 jobs:
-  ci:
-    name: ethereum-wallet-rs-ci
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Read .nvmrc
-        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
-        id: nvm
-
-      - name: Setup Node.js
-        uses: actions/setup-node@master
-        with:
-          node-version: '${{ steps.nvm.outputs.NVMRC }}'
-
-      - name: Install dependencies
-        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
-        working-directory: ./implementations/rs
-
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-
-      - name: Build
-        run: cargo build
-        working-directory: ./implementations/rs
-
-      - name: Test
-        run: cargo test
-        working-directory: ./implementations/rs
+  call-workflow:
+    uses: cbrzn/plugins-workflows/.github/workflows/rs-ci.yaml@main
+    with:
+      working-directory: ./implementations/rs
