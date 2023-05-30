@@ -9,9 +9,8 @@ on:
       - "implementations/rs/**"
 
 jobs:
-  call-release-workflow:
-    uses: polywrap/plugin-workflows/.github/workflows/rs/cd.yaml@main
+  release:
+    uses: polywrap/plugin-workflows/.github/workflows/rs-cd.yaml@main
     with:
       WORKING_DIRECTORY: ./implementations/rs
-      CRATES_TOKEN: ${{ secrets.POLYWRAP_BUILD_BOT_CRATES_PAT }}
 
