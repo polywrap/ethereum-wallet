@@ -31,6 +31,8 @@ mod networks;
 mod types;
 mod wrap;
 
+pub use types::*;
+
 #[derive(Debug)]
 pub struct EthereumWalletPlugin {
     connections: Connections,
@@ -51,9 +53,7 @@ impl Params {
             }
         } else if let Some(params) = params {
             match method {
-                "eth_getBlockByNumber" => {
-                    Params::parse::<GetBlockByNumberParamaterTypes>(params)
-                }
+                "eth_getBlockByNumber" => Params::parse::<GetBlockByNumberParamaterTypes>(params),
                 "eth_feeHistory" => vec![],
                 "eth_signTypedData_v4" => Params::parse::<SignTypedDataArgs>(params),
                 _ => from_str(params).unwrap(),
@@ -119,7 +119,7 @@ impl Module for EthereumWalletPlugin {
                 let result = response.map_err(|e| e.to_string()).unwrap();
 
                 match result {
-                    Value::String(r) => Ok(r),
+                    Value::String(r) => to_string(&r).map_err(PluginError::JSONError),
                     Value::Object(object) => to_string(&object).map_err(PluginError::JSONError),
                     _ => Ok("".to_string()),
                 }
@@ -161,9 +161,9 @@ impl Module for EthereumWalletPlugin {
             Ok(s) => Ok(Some(format!("0x{:x}", s.address()))),
             Err(e) => {
                 if let WalletError::WrongSignerGiven = e {
-                    Err(PluginError::ModuleError(
-                        "Signer private key not valid".to_string(),
-                    ))
+                    Err(PluginError::InvocationError {
+                        exception: "Signer private key not valid".to_string(),
+                    })
                 } else {
                     Ok(None)
                 }
@@ -185,12 +185,14 @@ impl Module for EthereumWalletPlugin {
                 if let Ok(signature) = response {
                     Ok(format!("{:#}", signature))
                 } else {
-                    Err(PluginError::ModuleError(
-                        "Error in sign message method".to_string(),
-                    ))
+                    Err(PluginError::InvocationError {
+                        exception: "Error in sign message method".to_string(),
+                    })
                 }
             }
-            Err(_) => Err(PluginError::ModuleError("Signer no available".to_string())),
+            Err(_) => Err(PluginError::InvocationError {
+                exception: "Signer no available".to_string(),
+            }),
         }
     }
 
@@ -211,12 +213,14 @@ impl Module for EthereumWalletPlugin {
                 if let Ok(signature) = response {
                     Ok(format!("{:#}", signature))
                 } else {
-                    Err(PluginError::ModuleError(
-                        "Error in sign transaction method".to_string(),
-                    ))
+                    Err(PluginError::InvocationError {
+                        exception: "Error in sign transaction method".to_string(),
+                    })
                 }
             }
-            Err(_) => Err(PluginError::ModuleError("Signer no available".to_string())),
+            Err(_) => Err(PluginError::InvocationError {
+                exception: "Signer no available".to_string(),
+            }),
         }
     }
 }

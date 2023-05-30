@@ -1,10 +1,8 @@
-use std::{assert_matches::assert_matches, str::FromStr};
+use std::assert_matches::assert_matches;
 
-use ethers::types::{Bytes, TransactionRequest};
 use polywrap_core::uri::Uri;
 use polywrap_msgpack::msgpack;
-use polywrap_plugin::JSON::{json, to_value, Value};
-use serde::{Deserialize, Serialize};
+use polywrap_plugin::JSON::{json, to_string, to_value, Value};
 
 use crate::get_client;
 
@@ -20,7 +18,7 @@ fn get_chain_id() {
         None,
         None,
     );
-    assert_eq!(response.unwrap(), "0x38");
+    assert_eq!(response.unwrap(), to_string("0x38").unwrap());
 }
 
 #[test]
@@ -41,35 +39,23 @@ fn get_transaction_count() {
 
 #[test]
 fn get_handle_eth_call() {
-    let mut t = TransactionRequest::new();
-    // retrieve() call function hash
-    let d = Bytes::from_str("0x2e64cec1").unwrap();
-    t = t.data(d);
-    t = t.to("0x9a752098eea4b09271fb9a774d5a50064bbefb22");
-
-    #[derive(Deserialize, Serialize)]
-    #[serde(untagged)]
-    enum Arguments {
-        Tx(TransactionRequest),
-        Tag(String),
-    }
-
-    let parameters = vec![Arguments::Tx(t), Arguments::Tag("latest".to_string())];
-
     let client = get_client();
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
         Some(&msgpack!({
             "method": "eth_call",
-            "params": Value::to_string(&to_value(parameters).unwrap()),
+            "params": "[{\"data\":\"0x0dfe1681\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\"},\"latest\"]",
+            "connection": {
+                "networkNameOrChainId": "mainnet"
+            }
         })),
         None,
         None,
     );
     assert_eq!(
         response.unwrap(),
-        "0x0000000000000000000000000000000000000000000000000000000000000002"
+        to_string("0x000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48").unwrap()
     );
 }
 
@@ -175,5 +161,5 @@ fn sign_typed_data() {
         None,
         None,
     );
-    assert_eq!(response.unwrap(), "12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c".to_string());
+    assert_eq!(response.unwrap(), "12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c");
 }

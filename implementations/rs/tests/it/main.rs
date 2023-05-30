@@ -1,15 +1,12 @@
 #![feature(assert_matches)]
 use polywrap_client::client::PolywrapClient;
-use polywrap_core::{
-    client::ClientConfig,
-    resolvers::static_resolver::{StaticResolver, StaticResolverLike},
-    uri::Uri,
-};
+use polywrap_core::{client::ClientConfig, uri::Uri};
 use polywrap_ethereum_wallet_plugin::{
     connection::Connection, connections::Connections, EthereumWalletPlugin,
 };
 use polywrap_msgpack::msgpack;
-use polywrap_plugin::package::PluginPackage;
+use polywrap_plugin::{package::PluginPackage};
+use polywrap_resolvers::static_resolver::{StaticResolver, StaticResolverLike};
 use std::{collections::HashMap, sync::Arc};
 
 pub mod request;
@@ -60,8 +57,6 @@ fn get_signer_address() {
 }
 
 #[test]
-// @TODO(cbrzn): Remove ignore once https://github.com/polywrap/rust-client/issues/59 its fixed
-#[ignore]
 fn sign_message() {
     let client = get_client();
     let response = client.invoke::<String>(
@@ -75,6 +70,6 @@ fn sign_message() {
     );
     assert_eq!(
         response.unwrap(),
-        "0xa4708243bf782c6769ed04d83e7192dbcf4fc131aa54fde9d889d8633ae39dab03d7babd2392982dff6bc20177f7d887e27e50848c851320ee89c6c63d18ca761c".to_string()
+        "a4708243bf782c6769ed04d83e7192dbcf4fc131aa54fde9d889d8633ae39dab03d7babd2392982dff6bc20177f7d887e27e50848c851320ee89c6c63d18ca761c"
     )
 }

@@ -30,12 +30,14 @@ pub struct ArgsSignerAddress {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ArgsSignMessage {
+    #[serde(with = "serde_bytes")]
     pub message: Vec<u8>,
     pub connection: Option<Connection>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ArgsSignTransaction {
+    #[serde(with = "serde_bytes")]
     pub rlp: Vec<u8>,
     pub connection: Option<Connection>,
 }
