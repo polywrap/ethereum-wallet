@@ -6,7 +6,7 @@ on:
       - "implementations/rs/**"
 
 jobs:
-  call-workflow:
-    uses: cbrzn/plugins-workflows/.github/workflows/rs-ci.yaml@main
+  call-build-and-test-workflow:
+    uses: polywrap/plugin-workflows/.github/workflows/rs-ci.yaml@main
     with:
       working-directory: ./implementations/rs
