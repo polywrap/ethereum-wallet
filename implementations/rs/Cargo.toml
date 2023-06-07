@@ -1,16 +1,16 @@
 [package]
 name = "polywrap_ethereum_wallet_plugin"
-version = "0.0.1-beta.1"
+version = "0.0.1-beta.2"
 license = "MIT"
 description = "Polywrap rust Ethereum wallet plugin"
 edition = "2021"
 
 [dependencies]
-polywrap_core = { version = "0.1.6-beta.3" }
-polywrap_plugin = { version = "0.1.6-beta.3" }
-polywrap_msgpack = { version = "0.1.6-beta.3" }
-polywrap_resolvers = { version = "0.1.6-beta.3" }
-wrap_manifest_schemas = { version = "0.1.6-beta.3" }
+polywrap_core = { version = "0.1.6-beta.4" }
+polywrap_plugin = { version = "0.1.6-beta.4" }
+polywrap_msgpack = { version = "0.1.6-beta.4" }
+polywrap_resolvers = { version = "0.1.6-beta.4" }
+wrap_manifest_schemas = { version = "0.1.6-beta.4" }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_bytes = "0.11.9"
 
@@ -20,4 +20,4 @@ tokio = "1.28.1"
 thiserror = "1.0.30"
 
 [dev-dependencies]
-polywrap_client = { version = "0.1.6-beta.3" }
+polywrap_client = { version = "0.1.6-beta.4" }
