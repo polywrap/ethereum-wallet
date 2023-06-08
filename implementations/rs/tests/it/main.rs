@@ -5,22 +5,35 @@ use polywrap_ethereum_wallet_plugin::{
     connection::Connection, connections::Connections, EthereumWalletPlugin,
 };
 use polywrap_msgpack::msgpack;
-use polywrap_plugin::{package::PluginPackage};
+use polywrap_plugin::package::PluginPackage;
 use polywrap_resolvers::static_resolver::{StaticResolver, StaticResolverLike};
 use std::{collections::HashMap, sync::Arc};
 
 pub mod request;
 
 fn get_client() -> PolywrapClient {
-    let connection = Connection::new(
+    let bsc_connection = Connection::new(
         "https://bsc-dataseed1.binance.org/".to_string(),
         Some(String::from(
             "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
         )),
     )
     .unwrap();
+    // let localhost_connection = Connection::new(
+    //     "http://localhost:8545".to_string(),
+    //     Some(String::from(
+    //         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    //     )),
+    // )
+    // .unwrap();
     let connections = Connections::new(
-        HashMap::from([("bsc".to_string(), connection)]),
+        HashMap::from([
+            ("bsc".to_string(), bsc_connection),
+            // (
+            //     "testnet".to_string(),
+            //     localhost_connection
+            // )
+        ]),
         Some("bsc".to_string()),
     );
 

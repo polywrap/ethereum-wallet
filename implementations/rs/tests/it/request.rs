@@ -179,3 +179,24 @@ fn sign_typed_data() {
     );
     assert_eq!(response.unwrap(), "12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c");
 }
+
+// @TODO: Set up anvil
+#[test]
+#[ignore]
+fn send_transaction() {
+    let client = get_client();
+    let response = client.invoke::<String>(
+        &Uri::try_from("plugin/ethereum-wallet").unwrap(),
+        "request",
+        Some(&msgpack!({
+            "method": "eth_sendTransaction",
+            "params": "[{\"data\":\"0x\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\", \"value\":\"0x1000000000000\"}]",
+            "connection": {
+                "networkNameOrChainId": "testnet"
+            }
+        })),
+        None,
+        None,
+    );
+    assert!(response.is_ok());
+}

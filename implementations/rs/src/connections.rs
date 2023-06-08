@@ -33,30 +33,29 @@ impl Connections {
     }
 
     pub fn get_connection(&self, connection: Option<SchemaConnection>) -> Connection {
-        let fetched_connection = if let Some(c) = connection.clone() {
-            if let Some(n) = c.network_name_or_chain_id {
-                Connection::from_network(from_alias(n.as_str()).unwrap(), None)
-            } else if let Some(node_url) = c.node {
-                Connection::from_node(node_url, None)
-            } else {
-                let network = from_alias(&self.default_network);
-                return Connection::from_network(network.unwrap(), None).unwrap();
-            }
-        } else {
-            return if let Some(c) = self.connections.get(&self.default_network) {
-                Connection {
-                    provider: c.provider.clone(),
-                    signer: c.signer.clone(),
-                }
-            } else {
-                panic!("{}", format!("Connection: {:#?} not found", connection))
-            };
-        };
+        match connection {
+            Some(connection) => {
+                if let Some(network) = connection.network_name_or_chain_id {
+                    return if let Some(con) = self.connections.get(&network) {
+                        con.clone()
+                    } else {
+                        Connection::from_network(from_alias(&network).unwrap(), None).unwrap()
+                    };
+                };
 
-        if let Ok(c) = fetched_connection {
-            c
-        } else {
-            panic!("{}", format!("Connection: {:#?} not found", connection))
+                if let Some(node) = connection.node {
+                    Connection::from_node(node, None).unwrap()
+                } else {
+                    panic!("Node given is not correct")
+                }
+            }
+            None => {
+                if let Some(c) = self.connections.get(&self.default_network) {
+                    c.clone()
+                } else {
+                    panic!("{}", format!("Connection: {:#?} not found", connection))
+                }
+            }
         }
     }
 }

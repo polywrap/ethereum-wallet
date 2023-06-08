@@ -1,10 +1,11 @@
 use crate::networks::{get_name, KnownNetwork};
 use ethers::{
-    providers::{Http, Provider},
-    signers::LocalWallet,
+    providers::{Http, Middleware, Provider},
+    signers::{LocalWallet, Signer},
 };
 use std::fmt::Debug;
 use thiserror::Error;
+use tokio::runtime::Runtime;
 
 #[derive(Error, Debug, Clone, PartialEq)]
 pub enum WalletError {
@@ -77,7 +78,10 @@ impl Connection {
         if let Some(s) = &self.signer {
             let wallet = s.parse::<LocalWallet>();
             if let Ok(w) = wallet {
-                Ok(w)
+                let chain_id = self.provider.get_chainid();
+                let runtime = tokio::runtime::Runtime::new().unwrap();
+                let chain_id = Runtime::block_on(&runtime, chain_id).unwrap();
+                Ok(w.with_chain_id(chain_id.as_u64()))
             } else {
                 Err(WalletError::WrongSignerGiven)
             }

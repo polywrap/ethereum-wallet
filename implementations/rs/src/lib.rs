@@ -111,10 +111,11 @@ impl Module for EthereumWalletPlugin {
             }
             "eth_sendTransaction" => {
                 let signer = connection.get_signer().unwrap();
-                let client = SignerMiddleware::new(provider, signer);
                 let tx: TransactionRequest = from_value(parameters[0].clone()).unwrap();
+                let client = SignerMiddleware::new(provider, signer);
                 let hash = Runtime::block_on(&runtime, client.send_transaction(tx, None));
-                return Ok(hash.unwrap().to_string());
+                let hash = Value::String(format!("{:#?}", hash.unwrap().tx_hash()));
+                to_string(&hash).map_err(PluginError::JSONError)
             }
             _ => {
                 let response = Runtime::block_on(
