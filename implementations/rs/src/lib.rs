@@ -14,12 +14,11 @@ use polywrap_core::invoker::Invoker;
 use polywrap_plugin::{
     error::PluginError,
     implementor::plugin_impl,
-    JSON::{self, from_str, from_value, to_string, to_value, Value},
+    JSON::{from_str, from_value, to_string, to_value, Value},
 };
 use serde::{Deserialize, Serialize};
 use std::{str::FromStr, sync::Arc};
 use tokio::runtime::Runtime;
-use types::{EthCallParamaterTypes, GetBlockByNumberParamaterTypes, SignTypedDataArgs};
 use wrap::module::{
     ArgsRequest, ArgsSignMessage, ArgsSignTransaction, ArgsSignerAddress, ArgsWaitForTransaction,
     Module,
@@ -54,9 +53,16 @@ impl Params {
         } else if let Some(params) = params {
             match method {
                 "eth_getBlockByNumber" => Params::parse::<GetBlockByNumberParamaterTypes>(params),
-                "eth_feeHistory" => vec![],
+                "eth_feeHistory" => Params::parse::<FeeHistoryArgs>(params),
                 "eth_signTypedData_v4" => Params::parse::<SignTypedDataArgs>(params),
-                _ => from_str(params).unwrap(),
+                _ => {
+                    let p = from_str(params);
+                    if p.is_err() {
+                        vec![]
+                    } else {
+                        p.unwrap()
+                    }
+                }
             }
         } else {
             vec![]

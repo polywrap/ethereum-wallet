@@ -80,6 +80,22 @@ fn get_block_by_number() {
 }
 
 #[test]
+fn get_fee_history() {
+    let client = get_client();
+    let response = client.invoke::<String>(
+        &Uri::try_from("plugin/ethereum-wallet").unwrap(),
+        "request",
+        Some(&msgpack!({
+            "method": "eth_feeHistory",
+            "params": "[10,\"latest\", [5.0]]",
+        })),
+        None,
+        None,
+    );
+    assert!(response.is_ok());
+}
+
+#[test]
 fn sign_typed_data() {
     let payload = json!({
       "types": {

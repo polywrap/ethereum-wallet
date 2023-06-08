@@ -1,4 +1,5 @@
 use ethers::types::transaction::eip712::TypedData;
+use polywrap_plugin::JSON::Value;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -18,17 +19,19 @@ pub enum EthCallParamaterTypes {
     Tag(String),
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct GetBlockByNumberParameters {
-    block_tag: String,
-    flag: bool,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum GetBlockByNumberParamaterTypes {
     Tag(String),
     Flag(bool),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum FeeHistoryArgs {
+    BlockCount(i32),
+    NewestBlock(String),
+    RewardPercentiles(Value)
 }
 
 #[derive(Serialize, Deserialize, Debug)]

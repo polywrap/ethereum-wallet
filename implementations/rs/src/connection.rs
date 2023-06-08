@@ -6,7 +6,7 @@ use ethers::{
 use std::fmt::Debug;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone, PartialEq)]
 pub enum WalletError {
     #[error("Not signer given")]
     NoSignerFound,
@@ -84,5 +84,25 @@ impl Connection {
         } else {
             Err(WalletError::NoSignerFound)
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Connection;
+
+    fn create_connection() -> Connection {
+        let provider = "https://goerli.infura.io/v3/41fbecf847994df5a9652b1210effd8a".to_string();
+        let signer = Some(String::from(
+            "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
+        ));
+        Connection::new(provider, signer).unwrap()
+    }
+
+    #[test]
+    fn get_signer() {
+        let connection = create_connection();
+        let s = connection.get_signer();
+        assert!(s.is_ok());
     }
 }
