@@ -1,9 +1,9 @@
 """This module contains a connections class for an EVM network."""
 from typing import Dict, Optional, Tuple, cast
 
-from polywrap_ethereum_provider.connection import Connection
-from polywrap_ethereum_provider.networks import KnownNetwork
-from polywrap_ethereum_provider.wrap.types import Connection as SchemaConnection
+from .connection import Connection
+from .networks import KnownNetwork
+from .wrap.types import Connection as SchemaConnection
 
 
 class Connections:
