@@ -21,11 +21,11 @@ connections = Connections(
 ethreum_provider_interface_uri = Uri.from_str("ens/wraps.eth:ethereum-provider@2.0.0")
 
 client_config = (
-  PolywrapClientConfigBuilder()
-  .set_package(ethereum_provider_plugin_uri, ethereum_provider_plugin(connections=connections))
-  .add_interface_implementations(ethreum_provider_interface_uri, [ethereum_provider_plugin_uri])
-  .set_redirect(ethreum_provider_interface_uri, ethereum_provider_plugin_uri)
-  .build()
+    PolywrapClientConfigBuilder()
+    .set_package(ethereum_provider_plugin_uri, ethereum_provider_plugin(connections=connections))
+    .add_interface_implementations(ethreum_provider_interface_uri, [ethereum_provider_plugin_uri])
+    .set_redirect(ethreum_provider_interface_uri, ethereum_provider_plugin_uri)
+    .build()
 )
 client = PolywrapClient(client_config)
 ```
