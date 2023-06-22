@@ -3,7 +3,7 @@ The Ethereum Provider plugin implements the `ethereum-provider-interface` @ [ens
 
 ## Usage
 ### 1. Configure Client
-When creating your Polywrap JS client, add the ethereum provider plugin:
+When creating your Polywrap Python client, add the ethereum wallet plugin:
 ```python
 from polywrap_client import PolywrapClient
 from polywrap_ethereum_provider import ethereum_provider_plugin
