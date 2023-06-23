@@ -9,17 +9,6 @@ on:
       - "implementations/py/**"
 
 jobs:
-  check:
-    name: check
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: check 1
-        run: echo ${{ github.event.pull_request.merged }}
-      - name: check 2
-        run: echo ${{ startsWith(github.event.pull_request.title, '[CD]') }}
-      - name: check 3
-        run: echo ${{ github.event.pull_request.user.login }}
   cd:
     name: ethereum-wallet-py-cd
     if: |
