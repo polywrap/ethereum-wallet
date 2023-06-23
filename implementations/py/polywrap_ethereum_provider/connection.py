@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 from web3 import Web3
 from web3.providers.base import JSONBaseProvider
 
-from polywrap_ethereum_provider.networks import KnownNetwork
+from .networks import KnownNetwork
 
 
 class Connection:

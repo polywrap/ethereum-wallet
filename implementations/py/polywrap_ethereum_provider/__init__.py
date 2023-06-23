@@ -2,7 +2,7 @@
 # pylint: disable=no-value-for-parameter
 # pylint: disable=protected-access
 import json
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 from eth_account import Account
 from eth_account._utils.signing import sign_message_hash  # type: ignore
@@ -10,7 +10,7 @@ from eth_account.datastructures import SignedMessage, SignedTransaction
 from eth_account.messages import encode_defunct, encode_structured_data  # type: ignore
 from eth_utils.crypto import keccak
 from hexbytes import HexBytes
-from polywrap_core import Env, InvokerClient, UriPackageOrWrapper
+from polywrap_core import InvokerClient
 from polywrap_plugin import PluginPackage
 from web3 import Web3
 from web3._utils.threads import Timeout
@@ -36,11 +36,11 @@ class EthereumProviderPlugin(Module[Connections]):
         super().__init__(connections)
         self.connections = connections
 
-    async def request(
+    def request(
         self,
         args: ArgsRequest,
-        client: InvokerClient[UriPackageOrWrapper],
-        env: Optional[Env] = None,
+        client: InvokerClient,
+        env: Optional[Any] = None,
     ) -> str:
         """Send a remote RPC request to the registered provider."""
         connection = self.connections.get_connection(args.get("connection"))
@@ -70,11 +70,11 @@ class EthereumProviderPlugin(Module[Connections]):
             raise RuntimeError(error)
         return json.dumps(response.get("result"))
 
-    async def signer_address(
+    def signer_address(
         self,
         args: ArgsSignerAddress,
-        client: InvokerClient[UriPackageOrWrapper],
-        env: Optional[Env] = None,
+        client: InvokerClient,
+        env: Optional[Any] = None,
     ) -> Optional[str]:
         """Get the ethereum address of the signer. Return null if signer is missing."""
         connection = self.connections.get_connection(args.get("connection"))
@@ -84,11 +84,11 @@ class EthereumProviderPlugin(Module[Connections]):
             ).address
         return None
 
-    async def wait_for_transaction(
+    def wait_for_transaction(
         self,
         args: ArgsWaitForTransaction,
-        client: InvokerClient[UriPackageOrWrapper],
-        env: Optional[Env] = None,
+        client: InvokerClient,
+        env: Optional[Any] = None,
     ) -> bool:
         """Wait for a transaction to be mined."""
         connection = self.connections.get_connection(args.get("connection"))
@@ -101,7 +101,7 @@ class EthereumProviderPlugin(Module[Connections]):
             with Timeout(cast(float, timeout)) as _timeout:
                 # Wait for the transaction receipt
                 while (
-                    tx_receipt := await self._get_transaction_receipt(args, client, env)
+                    tx_receipt := self._get_transaction_receipt(args, client, env)
                 ) is None:
                     _timeout.sleep(poll_latency)
 
@@ -118,10 +118,10 @@ class EthereumProviderPlugin(Module[Connections]):
         except Timeout as e:
             raise TimeoutError("Transaction timed out") from e
 
-    async def sign_message(
+    def sign_message(
         self,
         args: ArgsSignMessage,
-        client: InvokerClient[UriPackageOrWrapper],
+        client: InvokerClient,
         env: None,
     ) -> str:
         """Sign a message and return the signature. Throws if signer is missing."""
@@ -133,10 +133,10 @@ class EthereumProviderPlugin(Module[Connections]):
         )
         return signed_message.signature.hex()
 
-    async def sign_transaction(
+    def sign_transaction(
         self,
         args: ArgsSignTransaction,
-        client: InvokerClient[UriPackageOrWrapper],
+        client: InvokerClient,
         env: None,
     ) -> str:
         """
@@ -155,11 +155,11 @@ class EthereumProviderPlugin(Module[Connections]):
         (v, r, s, eth_signature_bytes) = sign_message_hash(key_obj, tx_hash)  # type: ignore
         return HexBytes(cast(bytes, eth_signature_bytes)).hex()
 
-    async def _get_transaction_receipt(
+    def _get_transaction_receipt(
         self,
         args: ArgsWaitForTransaction,
-        client: InvokerClient[UriPackageOrWrapper],
-        env: Optional[Env] = None,
+        client: InvokerClient,
+        env: Optional[Any] = None,
     ):
         connection = self.connections.get_connection(args.get("connection"))
         try:

@@ -1,10 +1,10 @@
 from typing import Any
 from pytest import fixture
 from eth_account import Account
-from eth_account.account import LocalAccount
-from polywrap_client import PolywrapClient, ClientConfig
+from eth_account.signers.local import LocalAccount
+from polywrap_client import PolywrapClient
+from polywrap_client_config_builder import PolywrapClientConfigBuilder
 from polywrap_core import Uri
-from polywrap_uri_resolvers import StaticResolver
 from web3 import EthereumTesterProvider
 
 from polywrap_ethereum_provider import ethereum_provider_plugin
@@ -38,11 +38,7 @@ def client_factory(provider: Any, account: LocalAccount):
             signer=account.key if with_signer else None,  # type: ignore
         )
 
-        resolver = StaticResolver(
-            {ethereum_provider_uri: ethereum_provider_plugin(connections=connections)}
-        )
-
-        client_config = ClientConfig(resolver=resolver)
+        client_config = PolywrapClientConfigBuilder().set_package(ethereum_provider_uri, ethereum_provider_plugin(connections=connections)).build()
         return PolywrapClient(client_config)
     return factory
 

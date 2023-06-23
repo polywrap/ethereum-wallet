@@ -1,7 +1,7 @@
-import asyncio
+from functools import partial
 from typing import Any, Callable, Dict
 from polywrap_client import PolywrapClient
-from polywrap_core import InvokeOptions, UriPackageOrWrapper, Uri, InvokerOptions
+from polywrap_core import Uri
 from pytest import fixture
 import pytest
 from web3 import Web3
@@ -29,11 +29,10 @@ def test_tx(w3: Web3):
         'gasPrice': 50000000000,
         'nonce': 0,
     }
-    return w3.eth.send_transaction(transaction).hex() # type: ignore
+    return w3.eth.send_transaction(transaction).hex()  # type: ignore
 
 
-
-async def test_wait_for_transaction_no_confirmations(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str):
+def test_wait_for_transaction_no_confirmations(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str):
     args= {
         "txHash": test_tx,
         "confirmations": 0,
@@ -41,19 +40,18 @@ async def test_wait_for_transaction_no_confirmations(client_factory: Callable[[W
             "networkNameOrChainId": "mocknet",
         }
     }
-    options: InvokeOptions[UriPackageOrWrapper] = InvokerOptions(
+    client = client_factory(True)
+    result = client.invoke(
         uri=provider_uri,
         method="waitForTransaction",
         args=args,
-        encode_result=False,
+        encode_result=False
     )
-    client = client_factory(True)
-    result = await client.invoke(options)
 
     assert result == True
 
 
-async def test_wait_for_transaction_ten_confirmations(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str, w3: Web3):
+def test_wait_for_transaction_ten_confirmations(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str, w3: Web3):
     confirmations = 10
     block_time = 0.1
     args= {
@@ -63,23 +61,22 @@ async def test_wait_for_transaction_ten_confirmations(client_factory: Callable[[
             "networkNameOrChainId": "mocknet",
         }
     }
-    options: InvokeOptions[UriPackageOrWrapper] = InvokerOptions(
-        uri=provider_uri,
-        method="waitForTransaction",
-        args=args,
-        encode_result=False,
-    )
     client = client_factory(True)
 
     with Benchmark() as b:
         pool.submit(mine_blocks, w3, 10, block_time)
-        result = pool.submit(asyncio.run, client.invoke(options)).result()
+        result = pool.submit(partial(client.invoke,
+            uri=provider_uri,
+            method="waitForTransaction",
+            args=args,
+            encode_result=False
+        )).result()
 
     assert result == True
     assert b.elapsed > block_time * confirmations
 
 
-async def test_wait_for_transaction_timeout(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str, w3: Web3):
+def test_wait_for_transaction_timeout(client_factory: Callable[[WithSigner], PolywrapClient], test_tx: str, w3: Web3):
     confirmations = 10
     block_time = 0.1
     args= {
@@ -90,16 +87,15 @@ async def test_wait_for_transaction_timeout(client_factory: Callable[[WithSigner
             "networkNameOrChainId": "mocknet",
         }
     }
-    options: InvokeOptions[UriPackageOrWrapper] = InvokerOptions(
-        uri=provider_uri,
-        method="waitForTransaction",
-        args=args,
-        encode_result=False,
-    )
     client = client_factory(True)
 
     with pytest.raises(Exception) as e:
         pool.submit(mine_blocks, w3, 10, block_time)
-        pool.submit(asyncio.run, client.invoke(options)).result()
+        pool.submit(client.invoke(
+            uri=provider_uri,
+            method="waitForTransaction",
+            args=args,
+            encode_result=False
+        )).result()
 
     assert isinstance(e.value.__cause__, TimeoutError)

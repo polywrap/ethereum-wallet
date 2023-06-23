@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "polywrap-ethereum-provider"
-version = "0.1.0a2"
+version = "0.1.0a1"
 description = "Ethereum provider in python"
 authors = ["Cesar <cesar@polywrap.io>"]
 
@@ -14,10 +14,10 @@ include = ["polywrap_ethereum_provider/wrap/**/*"]
 python = "^3.10"
 web3 = "6.1.0"
 eth_account = "0.8.0"
-polywrap-plugin = "0.1.0a29"
-polywrap-core = "^0.1.0a29"
-polywrap-msgpack = "^0.1.0a29"
-polywrap-manifest = "^0.1.0a29"
+polywrap-plugin = "0.1.0a33"
+polywrap-core = "0.1.0a33"
+polywrap-msgpack = "0.1.0a33"
+polywrap-manifest = "0.1.0a33"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
@@ -30,12 +30,13 @@ tox-poetry = "^0.4.1"
 isort = "^5.10.1"
 pyright = "^1.1.275"
 pydocstyle = "^6.1.1"
-polywrap-client = "0.1.0a29"
-polywrap-client-config-builder = "0.1.0a29"
-polywrap-uri-resolvers = "^0.1.0a29"
+polywrap-client = "0.1.0a33"
+polywrap-client-config-builder = "0.1.0a33"
+polywrap-uri-resolvers = "^0.1.0a33"
 
 [tool.poetry.group.dev.dependencies]
 eth-tester = "^0.8.0b3"
+polywrap-client-config-builder = "^0.1.0a33"
 
 [tool.bandit]
 exclude_dirs = ["tests"]
