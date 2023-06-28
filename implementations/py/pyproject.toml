@@ -15,10 +15,10 @@ include = ["polywrap_ethereum_provider/wrap/**/*"]
 python = "^3.10"
 web3 = "6.1.0"
 eth_account = "0.8.0"
-polywrap-plugin = "0.1.0a34"
-polywrap-core = "0.1.0a34"
-polywrap-msgpack = "0.1.0a34"
-polywrap-manifest = "0.1.0a34"
+polywrap-plugin = "0.1.0a35"
+polywrap-core = "0.1.0a35"
+polywrap-msgpack = "0.1.0a35"
+polywrap-manifest = "0.1.0a35"
 
 [tool.poetry.group.dev.dependencies]
 eth-tester = "^0.8.0b3"
@@ -32,9 +32,9 @@ tox-poetry = "^0.4.1"
 isort = "^5.10.1"
 pyright = "^1.1.275"
 pydocstyle = "^6.1.1"
-polywrap-client = "0.1.0a34"
-polywrap-client-config-builder = "0.1.0a34"
-polywrap-uri-resolvers = "^0.1.0a34"
+polywrap-client = "0.1.0a35"
+polywrap-client-config-builder = "0.1.0a35"
+polywrap-uri-resolvers = "^0.1.0a35"
 
 [tool.bandit]
 exclude_dirs = ["tests"]
