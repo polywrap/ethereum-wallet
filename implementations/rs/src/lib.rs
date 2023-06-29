@@ -107,7 +107,7 @@ impl Module for EthereumWalletPlugin {
                 let signer = connection.get_signer().unwrap();
                 let typed_data: TypedData = from_value(parameters[1].clone()).unwrap();
                 let hash = Runtime::block_on(&runtime, signer.sign_typed_data(&typed_data));
-                let hash = hash.unwrap().to_string();
+                let hash = format!("0x{}", hash.unwrap().to_string());
                 to_string(&hash).map_err(PluginError::JSONError)
             }
             "eth_sendTransaction" => {
