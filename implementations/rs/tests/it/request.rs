@@ -1,10 +1,18 @@
 use std::assert_matches::assert_matches;
 
 use polywrap_core::uri::Uri;
-use polywrap_msgpack::msgpack;
+use polywrap_msgpack_serde::to_vec;
 use polywrap_plugin::JSON::{json, to_string, to_value, Value};
+use serde::Serialize;
 
-use crate::get_client;
+use crate::{get_client, ConnectionArgs};
+
+#[derive(Serialize)]
+struct RequestArgs {
+    method: String,
+    params: Option<String>,
+    connection: Option<ConnectionArgs>,
+}
 
 #[test]
 fn get_chain_id() {
@@ -12,9 +20,14 @@ fn get_chain_id() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_chainId"
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_chainId".to_string(),
+                params: None,
+                connection: None,
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -27,10 +40,16 @@ fn get_transaction_count() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_getTransactionCount",
-            "params": "[\"0xf3702506acec292cfaf748b37cfcea510dc37714\",\"latest\"]",
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_getTransactionCount".to_string(),
+                params: Some(
+                    "[\"0xf3702506acec292cfaf748b37cfcea510dc37714\",\"latest\"]".to_string(),
+                ),
+                connection: None,
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -43,13 +62,16 @@ fn get_handle_eth_call() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_call",
-            "params": "[{\"data\":\"0x0dfe1681\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\"},\"latest\"]",
-            "connection": {
-                "networkNameOrChainId": "mainnet"
-            }
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_call".to_string(),
+                params: Some(
+                    "[{\"data\":\"0x0dfe1681\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\"},\"latest\"]".to_string(),
+                ),
+                connection: Some(ConnectionArgs { network_name_or_chain_id: Some("mainnet".to_string()), node: None })
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -65,10 +87,14 @@ fn get_block_by_number() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_getBlockByNumber",
-            "params": "[\"latest\",false]",
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_getBlockByNumber".to_string(),
+                params: Some("[\"latest\",false]".to_string()),
+                connection: None,
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -85,10 +111,14 @@ fn get_fee_history() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_feeHistory",
-            "params": "[10,\"latest\", [5.0]]",
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_feeHistory".to_string(),
+                params: Some("[10,\"latest\", [5.0]]".to_string()),
+                connection: None,
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -170,10 +200,14 @@ fn sign_typed_data() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_signTypedData_v4",
-            "params": params.to_string(),
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_signTypedData_v4".to_string(),
+                params: Some(params.to_string()),
+                connection: None,
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -188,13 +222,15 @@ fn send_transaction() {
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "request",
-        Some(&msgpack!({
-            "method": "eth_sendTransaction",
-            "params": "[{\"data\":\"0x\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\", \"value\":\"0x1000000000000\"}]",
-            "connection": {
-                "networkNameOrChainId": "testnet"
-            }
-        })),
+        Some(
+            &to_vec(&RequestArgs {
+                method: "eth_feeHistory".to_string(),
+                params: Some("[{\"data\":\"0x\",\"to\":\"0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8\",\"type\":\"0x00\", \"value\":\"0x1000000000000\"}]".to_string()),
+                connection: Some(ConnectionArgs { network_name_or_chain_id: Some("testnet".to_string()), node: None }),
+            })
+            .unwrap(),
+        ),
+
         None,
         None,
     );

@@ -4,12 +4,20 @@ use polywrap_core::{client::ClientConfig, uri::Uri};
 use polywrap_ethereum_wallet_plugin::{
     connection::Connection, connections::Connections, EthereumWalletPlugin,
 };
-use polywrap_msgpack::msgpack;
+use polywrap_msgpack_serde::to_vec;
 use polywrap_plugin::package::PluginPackage;
 use polywrap_resolvers::static_resolver::{StaticResolver, StaticResolverLike};
+use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 
 pub mod request;
+
+#[derive(Serialize)]
+pub struct ConnectionArgs {
+    #[serde(rename = "networkNameOrChainId")]
+    network_name_or_chain_id: Option<String>,
+    node: Option<String>,
+}
 
 fn get_client() -> PolywrapClient {
     let bsc_connection = Connection::new(
@@ -53,13 +61,26 @@ fn get_client() -> PolywrapClient {
     })
 }
 
+#[derive(Serialize)]
+pub struct ArgsSignerAddress {
+    pub connection: Option<ConnectionArgs>,
+}
+
 #[test]
 fn get_signer_address() {
     let client = get_client();
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "signerAddress",
-        None,
+        Some(
+            &to_vec(&ArgsSignerAddress {
+                connection: Some(ConnectionArgs {
+                    network_name_or_chain_id: Some("bsc".to_string()),
+                    node: None,
+                }),
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
@@ -69,15 +90,24 @@ fn get_signer_address() {
     )
 }
 
+#[derive(Serialize)]
+struct SignMessageArgs {
+    #[serde(with = "serde_bytes")]
+    message: Vec<u8>,
+}
+
 #[test]
 fn sign_message() {
     let client = get_client();
     let response = client.invoke::<String>(
         &Uri::try_from("plugin/ethereum-wallet").unwrap(),
         "signMessage",
-        Some(&msgpack!({
-            "message": "Hello World".as_bytes()
-        })),
+        Some(
+            &to_vec(&SignMessageArgs {
+                message: "Hello World".as_bytes().to_vec(),
+            })
+            .unwrap(),
+        ),
         None,
         None,
     );
