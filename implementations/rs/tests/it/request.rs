@@ -211,7 +211,7 @@ fn sign_typed_data() {
         None,
         None,
     );
-    assert_eq!(response.unwrap(), "\"12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"");
+    assert_eq!(response.unwrap(), "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"");
 }
 
 // @TODO: Set up anvil
