@@ -12,17 +12,17 @@ func buildHttpRequest(body: Data?) -> URLRequest {
 }
 
 func handleHttpRequest(req: URLRequest, completion: @escaping (Result<String, Error>) -> Void) {
-            let task = URLSession.shared.dataTask(with: req) { (data, response, error) in
+            let task = URLSession.shared.dataTask(with: req) { (data, _, error) in
             if let error = error {
                 return completion(.failure(error))
             } else if let data = data {
-                let json = try! JSONSerialization.jsonObject(with: data, options: []) as! [String : Any]
+                let json = try! JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
                 let stringJson = try! JSONSerialization.data(withJSONObject: json["result"])
-                return completion(.success(String(data:stringJson, encoding: .utf8)!))
+                return completion(.success(String(data: stringJson, encoding: .utf8)!))
             } else {
                 print("unexpected error")
             }
         }
-           
+
        task.resume()
 }

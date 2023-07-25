@@ -3,15 +3,14 @@ import Foundation
 import Combine
 import PolywrapClient
 
-
-public class MetamaskProvider: Plugin {
+public class MetamaskProvider: PluginModule {
     var provider: Ethereum
     var cancellables: Set<AnyCancellable> = []
-    var result: Data? = nil;
+    var result: Data?
 
     public init(ethereum: Ethereum, dapp: Dapp) {
         self.provider = ethereum
-        
+
         self.provider.connect(dapp)?.sink(receiveCompletion: { completion in
             switch completion {
             case let .failure(error):
@@ -21,15 +20,9 @@ public class MetamaskProvider: Plugin {
         }, receiveValue: { value in
             print("Wallet connected! \(value)")
         }).store(in: &cancellables)
-
-        super.init()
-        super.addMethod(name: "request", closure: request)
-        super.addMethod(name: "waitForTransaction", closure: waitForTransaction)
-        super.addMethod(name: "signerAddress", closure: signerAddress)
-        super.addMethod(name: "chainId", closure: chainId)
     }
-    
-    func executeRequest(publisher: EthereumPublisher?, completion: @escaping (Result<String, Error>) -> Void) -> Void {
+
+    func executeRequest(publisher: EthereumPublisher?, completion: @escaping (Result<String, Error>) -> Void) {
         publisher?.sink(receiveCompletion: { completionResult in
             switch completionResult {
             case .finished:
@@ -41,7 +34,7 @@ public class MetamaskProvider: Plugin {
             if let response = value as? String {
                  return completion(.success("\"\(response)\""))
             }
-            
+
             if let tx = value as? Transaction {
                 let encoder = JSONEncoder()
                 let jsonData = try! encoder.encode(tx)
@@ -51,7 +44,7 @@ public class MetamaskProvider: Plugin {
             }
         }).store(in: &cancellables)
    }
-    
+
     func request(args: ArgsRequest, completion: @escaping (Result<String, Error>) -> Void) {
         if !provider.connected {
             return completion(.failure(ProviderError.NotConnected))
@@ -64,10 +57,10 @@ public class MetamaskProvider: Plugin {
                     let json = params.data(using: .utf8)!
                     let jsonDecoder = JSONDecoder()
                     let mixedArray = try! jsonDecoder.decode([TxOrString].self, from: json)
-                    
+
                     let transaction = mixedArray[0].toTransaction()!
                     handleEthCall(transaction: transaction, completion: completion)
-                    
+
                 } else {
                     // todo make error
                     print("Params must be in eth_call")
@@ -136,7 +129,6 @@ public class MetamaskProvider: Plugin {
     }
     private var delayUnit: DelayUnit = .shortest
 
-    
     // Inspired from https://github.com/web3swift-team/web3swift/blob/develop/Sources/web3swift/Transaction/TransactionPollingTask.swift#L11
     // Probably it would be easier to add this library and use it?
     public func waitForTransaction(args: ArgsWaitForTransaction) async -> Bool {
@@ -155,7 +147,7 @@ public class MetamaskProvider: Plugin {
                         // TODO: Handle confirmations
                         return true
                     }
-                    
+
                     if delayUnit.shouldIncreaseDelay(startTime) {
                         delayUnit = delayUnit.nextDelayUnit
                     }
@@ -165,10 +157,9 @@ public class MetamaskProvider: Plugin {
                 print("Error in JSON Serialization from wait for transaction method \(error)")
             }
 
-
         }
     }
-    
+
     public func signTransaction(_ args: ArgsSignTransaction) async throws -> String {
         throw ProviderError.MethodNotSupported
     }
@@ -176,7 +167,7 @@ public class MetamaskProvider: Plugin {
     public func signMessage(_ args: ArgsSignMessage) async throws -> String {
         throw ProviderError.MethodNotSupported
     }
-    
+
     public func signerAddress(_ args: ArgsAddress) async -> String {
         self.provider.selectedAddress
     }
@@ -184,24 +175,24 @@ public class MetamaskProvider: Plugin {
     public func chainId(_ args: ArgsChainId) async -> String {
         self.provider.chainId
     }
-    
+
     private func isTransactionMethod(_ method: String) -> Bool {
         let transactionMethods = [
             "eth_sendTransaction",
             "eth_estimateGas",
             "eth_call"
         ]
-        
+
         return transactionMethods.contains(method)
     }
-    
+
     // Metamask does not handle well arguments with different types, this is a hack to make the plugin work as expected
     // but this should not be the case. The way it's commented in the readme doesn't really work:
     // https://github.com/MetaMask/metamask-ios-sdk#using-a-struct
     private func handleGetBlockByNumber(block: String, includeTx: Bool, completion: @escaping (Result<String, Error>) -> Void) {
-        let jsonData = try? JSONSerialization.data(withJSONObject:[
+        let jsonData = try? JSONSerialization.data(withJSONObject: [
             "id": "1",
-            "jsonrpc":"2.0",
+            "jsonrpc": "2.0",
             "method": "eth_getBlockByNumber",
             "params": [block, includeTx]
         ])
@@ -209,11 +200,11 @@ public class MetamaskProvider: Plugin {
         let httpRequest = buildHttpRequest(body: jsonData)
         handleHttpRequest(req: httpRequest, completion: completion)
     }
-    
+
     private func handleFeeHistory(blockCount: String, newestBlock: String, rewardPercentiles: [Float]?, completion: @escaping (Result<String, Error>) -> Void) {
-        let jsonData = try? JSONSerialization.data(withJSONObject:[
+        let jsonData = try? JSONSerialization.data(withJSONObject: [
             "id": "1",
-            "jsonrpc":"2.0",
+            "jsonrpc": "2.0",
             "method": "eth_feeHistory",
             "params": [blockCount, newestBlock, rewardPercentiles]
         ])
@@ -221,11 +212,11 @@ public class MetamaskProvider: Plugin {
         let httpRequest = buildHttpRequest(body: jsonData)
         handleHttpRequest(req: httpRequest, completion: completion)
     }
-    
+
     private func handleEthCall(transaction: Transaction, completion: @escaping (Result<String, Error>) -> Void) {
-        let jsonData = try? JSONSerialization.data(withJSONObject:[
+        let jsonData = try? JSONSerialization.data(withJSONObject: [
             "id": "1",
-            "jsonrpc":"2.0",
+            "jsonrpc": "2.0",
             "method": "eth_call",
             "params": [
                 [
@@ -239,7 +230,7 @@ public class MetamaskProvider: Plugin {
         let httpRequest = buildHttpRequest(body: jsonData)
         handleHttpRequest(req: httpRequest, completion: completion)
     }
-    
+
     private enum DelayUnit: UInt64 {
         case shortest = 1
         case medium = 5

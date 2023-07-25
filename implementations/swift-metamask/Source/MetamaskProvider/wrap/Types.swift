@@ -11,7 +11,6 @@ public struct Transaction: CodableData {
     let value: String?
     let to: String?
 
-
     public init(to: String? = nil, from: String? = nil, value: String? = nil, data: String, type: String? = nil) {
         self.to = to
         self.from = from
@@ -19,16 +18,15 @@ public struct Transaction: CodableData {
         self.data = data
         self.type = type
     }
-    
+
     public init?(json: [String: Any]) {
         guard let data = json["data"] as? String
         else {
             return nil
         }
-        
-        
+
         self.data = data
-        
+
         if let type = json["type"] as? String {
             self.type = type
         } else {
@@ -40,13 +38,13 @@ public struct Transaction: CodableData {
         } else {
             self.from = nil
         }
-        
+
         if let to = json["to"] as? String {
             self.to = to
         } else {
             self.to = nil
         }
-        
+
         if let value = json["value"] as? String {
             self.value = value
         } else {
@@ -69,7 +67,7 @@ public struct ArgsWaitForTransaction: Codable {
     let confirmations: UInt32
     let timeout: UInt32?
     let connection: [String: String?]?
-    
+
     public init(txHash: String, confirmations: UInt32, timeout: UInt32? = nil, connection: [String: String]?) {
         self.txHash = txHash
         self.confirmations = confirmations
@@ -79,10 +77,10 @@ public struct ArgsWaitForTransaction: Codable {
 }
 
 public struct ArgsRequest: Codable {
-    var method: String;
-    var params: String?;
-    var connection: [String: String?]?;
-    
+    var method: String
+    var params: String?
+    var connection: [String: String?]?
+
     public init(method: String, params: String? = "") {
         self.method = method
         self.params = params
@@ -101,7 +99,6 @@ public struct ArgsSignTransaction: Codable {
 public struct ArgsAddress: Codable {
     public init() {}
 }
-
 
 public struct ArgsChainId: Codable {
     public init() {}
@@ -134,18 +131,18 @@ struct Message: Codable {
 
 struct TypedData: Codable {
     var domain: Domain
-    var message: Dictionary<String, StringOrInt>
+    var message: [String: StringOrInt]
     var primaryType: String
-    var types: Dictionary<String, [Dictionary<String, String>]>
+    var types: [String: [Dictionary<String, String>]]
 }
 
 enum StringOrInt: Codable {
     case string(String)
     case int(Int)
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let typedDataValue = try? container.decode(Int.self) {
             self = .int(typedDataValue)
         } else if let stringValue = try? container.decode(String.self) {
@@ -168,16 +165,16 @@ enum StringOrInt: Codable {
             try container.encode(int)
         }
     }
-    
+
 }
 
 enum AddressOrTypedData: Codable {
     case string(String)
     case typedData(TypedData)
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let typedDataValue = try? container.decode(TypedData.self) {
             self = .typedData(typedDataValue)
         } else if let stringValue = try? container.decode(String.self) {
@@ -189,7 +186,7 @@ enum AddressOrTypedData: Codable {
             )
         }
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
 
@@ -200,7 +197,7 @@ enum AddressOrTypedData: Codable {
             try container.encode(typedDatavalue)
         }
     }
-    
+
     func toString() -> String {
         switch self {
         case .typedData(let v):
@@ -217,10 +214,10 @@ enum AddressOrTypedData: Codable {
 enum TxOrString: Codable {
     case string(String)
     case transaction(Transaction)
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        
+
         if let txValue = try? container.decode(Transaction.self) {
             self = .transaction(txValue)
         } else if let stringValue = try? container.decode(String.self) {
@@ -232,7 +229,7 @@ enum TxOrString: Codable {
             )
         }
     }
-        
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
 
@@ -243,7 +240,7 @@ enum TxOrString: Codable {
             try container.encode(txValue)
         }
     }
-    
+
     func toString() -> String {
         switch self {
         case .transaction(let v):
@@ -255,12 +252,12 @@ enum TxOrString: Codable {
             return v
         }
     }
-    
+
     func toTransaction() -> Transaction? {
         switch self {
         case .transaction(let v):
             return v
-        case .string(_):
+        case .string:
             return nil
         }
     }
@@ -269,12 +266,12 @@ enum TxOrString: Codable {
 public struct ParamsEthCall: CodableData {
     public var tx: Transaction
     public var tag: String
-    
+
     public init(tx: Transaction, tag: String) {
         self.tx = tx
         self.tag = tag
     }
-    
+
     public func socketRepresentation() throws -> SocketData {
         return [
          [
@@ -289,7 +286,7 @@ public struct ParamsEthCall: CodableData {
 public struct CustomBoolOrStringArray: CodableData {
     let tag: String
     let include: Bool
-    
+
     public func socketRepresentation() -> NetworkData {
         [self.tag, self.include]
     }
