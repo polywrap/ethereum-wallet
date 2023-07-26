@@ -1,4 +1,4 @@
-import { PolywrapClient, ClientConfigBuilder } from "@polywrap/client-js";
+import { PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js";
 
 import { BigNumber, Wallet } from "ethers";
 
@@ -15,7 +15,7 @@ describe("Ethereum Plugin", () => {
 
   beforeAll(async () => {
     client = new PolywrapClient(
-      new ClientConfigBuilder().addPackage(
+      new PolywrapClientConfigBuilder().setPackage(
         uri,
         ethereumProviderPlugin({
           connections: new Connections({
@@ -32,7 +32,7 @@ describe("Ethereum Plugin", () => {
     );
 
     clientNoSigner = new PolywrapClient(
-      new ClientConfigBuilder().addPackage(
+      new PolywrapClientConfigBuilder().setPackage(
         uri,
         ethereumProviderPlugin({
           connections: new Connections({
@@ -48,7 +48,7 @@ describe("Ethereum Plugin", () => {
     );
 
     clientWithWeb3Provider = new PolywrapClient(
-      new ClientConfigBuilder().addPackage(
+      new PolywrapClientConfigBuilder().setPackage(
         uri,
         ethereumProviderPlugin({
           connections: new Connections({
