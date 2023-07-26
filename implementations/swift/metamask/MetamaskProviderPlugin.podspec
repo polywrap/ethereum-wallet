@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
     s.license          = 'MIT'
     s.author           = { 'Cesar' => 'cesar@polywrap.io' }
   
-    s.source_files = 'Source/**/*.swift'
+    s.source_files = 'implementations/swift/metamask/Source/**/*.swift'
     s.swift_version  = "5.0"
     s.ios.deployment_target = '14.0'
     s.user_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
