@@ -3,16 +3,16 @@ The Ethereum Wallet plugin implements the `ethereum-wallet-interface` @ [wrapsca
 
 ## Usage
 ### 1. Configure Client
-When creating your Polywrap JS client, add the ethereum provider plugin:
+When creating your Polywrap JS client, add the ethereum wallet plugin:
 ```typescript
 import { PolywrapClient } from "@polywrap/client-js";
-import { ethereumProviderPlugin } from "@polywrap/ethereum-wallet-js";
+import { ethereumWalletPlugin } from "@polywrap/ethereum-wallet-js";
 
 const client = new PolywrapClient({
   // 1. Add the plugin package @ an arbitrary URI
   packages: [{
     uri: "plugin/ethereum-wallet",
-    package: ethereumProviderPlugin({ })
+    package: ethereumWalletPlugin({ })
   }],
   // 2. Register this plugin as an implementation of the interface
   interfaces: [{
@@ -23,7 +23,7 @@ const client = new PolywrapClient({
 ```
 
 ### 2. Invoke The Ethereum Wrapper
-Invocations to the Ethereum wrapper may trigger sub-invocations to the Ethereum Provider plugin:
+Invocations to the Ethereum wrapper may trigger sub-invocations to the Ethereum Wallet plugin:
 ```typescript
 await client.invoke({
   uri: "wrapscan.io/polywrap/ethers@1.0",

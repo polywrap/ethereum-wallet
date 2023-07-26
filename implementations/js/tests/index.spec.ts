@@ -2,7 +2,7 @@ import { PolywrapClient, PolywrapClientConfigBuilder } from "@polywrap/client-js
 
 import { BigNumber, Wallet } from "ethers";
 
-import { ethereumProviderPlugin, Connection, Connections } from "../src";
+import { ethereumWalletPlugin, Connection, Connections } from "../src";
 import { provider as Web3MockProvider } from "ganache"
 
 jest.setTimeout(360000);
@@ -11,13 +11,13 @@ describe("Ethereum Plugin", () => {
   let client: PolywrapClient;
   let clientNoSigner: PolywrapClient;
   let clientWithWeb3Provider: PolywrapClient;
-  const uri = "wrap://plugin/ethereum-provider";
+  const uri = "wrap://plugin/ethereum-wallet";
 
   beforeAll(async () => {
     client = new PolywrapClient(
       new PolywrapClientConfigBuilder().setPackage(
         uri,
-        ethereumProviderPlugin({
+        ethereumWalletPlugin({
           connections: new Connections({
             networks: {
               binance: new Connection({
@@ -34,7 +34,7 @@ describe("Ethereum Plugin", () => {
     clientNoSigner = new PolywrapClient(
       new PolywrapClientConfigBuilder().setPackage(
         uri,
-        ethereumProviderPlugin({
+        ethereumWalletPlugin({
           connections: new Connections({
             networks: {
               binance: new Connection({
@@ -50,7 +50,7 @@ describe("Ethereum Plugin", () => {
     clientWithWeb3Provider = new PolywrapClient(
       new PolywrapClientConfigBuilder().setPackage(
         uri,
-        ethereumProviderPlugin({
+        ethereumWalletPlugin({
           connections: new Connections({
             networks: {
               testnet: new Connection({
@@ -73,7 +73,7 @@ describe("Ethereum Plugin", () => {
     );
   });
 
-  describe("EthereumProviderPlugin", () => {
+  describe("EthereumWalletPlugin", () => {
     it("eth_chainId", async () => {
       const response = await client.invoke<string>({
         uri,
@@ -161,7 +161,7 @@ describe("Ethereum Plugin", () => {
         chainId: 1,
         verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
     };
-    
+
     // The named list of all type definitions
     const types = {
       EIP712Domain: [
@@ -192,7 +192,7 @@ describe("Ethereum Plugin", () => {
           { name: 'contents', type: 'string' }
       ]
     };
-    
+
     // The data to sign
     const message = {
         from: {
@@ -205,7 +205,7 @@ describe("Ethereum Plugin", () => {
         },
         contents: 'Hello, Bob!'
     };
-  
+
       const response = await clientWithWeb3Provider.invoke<string>({
         uri,
         method: "request",
@@ -227,7 +227,7 @@ describe("Ethereum Plugin", () => {
         chainId: 1,
         verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC'
     };
-    
+
     // The named list of all type definitions
     const types = {
       EIP712Domain: [
@@ -258,7 +258,7 @@ describe("Ethereum Plugin", () => {
           { name: 'contents', type: 'string' }
       ]
     };
-    
+
     // The data to sign
     const message = {
         from: {

@@ -20,14 +20,14 @@ import { ethers } from "ethers";
 export * from "./Connection";
 export * from "./Connections";
 
-export interface ProviderConfig {
+export interface WalletConfig {
   connections: Connections;
 }
 
-export class EthereumProviderPlugin extends Module<ProviderConfig> {
+export class EthereumWalletPlugin extends Module<WalletConfig> {
   private _connections: Connections;
 
-  constructor(config: ProviderConfig) {
+  constructor(config: WalletConfig) {
     super(config);
     this._connections = config.connections;
   }
@@ -202,12 +202,12 @@ export class EthereumProviderPlugin extends Module<ProviderConfig> {
   }
 }
 
-export const ethereumProviderPlugin: PluginFactory<ProviderConfig> = (
-  config: ProviderConfig
+export const ethereumWalletPlugin: PluginFactory<WalletConfig> = (
+  config: WalletConfig
 ) =>
-  new PluginPackage<ProviderConfig>(
-    new EthereumProviderPlugin(config),
+  new PluginPackage<WalletConfig>(
+    new EthereumWalletPlugin(config),
     manifest
   );
 
-export const plugin = ethereumProviderPlugin;
+export const plugin = ethereumWalletPlugin;
