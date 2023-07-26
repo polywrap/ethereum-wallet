@@ -1,0 +1,5 @@
+format: 0.1.0
+description: Ethereum Wallet Interface
+website: https://polywrap.io
+repository: https://github.com/polywrap/ethereum-wallet
+readme: ./README.md
