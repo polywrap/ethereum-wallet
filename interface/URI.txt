@@ -1,1 +1,1 @@
-wrap://ipfs/QmVX64HVNprKmRyfG82Z8hcwQiAS1kMNQ8T1bNUEQp7Grr
+wrap://http/https://wraps.wrapscan.io/r/polywrap/ethereum-wallet@1.0.0
