@@ -1,12 +1,10 @@
 {
-  "name": "ethereum-wallet-interface",
-  "version": "2.0.0",
   "private": true,
   "scripts": {
     "build": "npx polywrap build",
     "deploy": "npx polywrap deploy -o deployment.json"
   },
   "devDependencies": {
-    "polywrap": "0.10.2"
+    "polywrap": "~0.11.0-pre.0"
   }
 }
