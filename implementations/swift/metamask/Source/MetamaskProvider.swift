@@ -287,7 +287,7 @@ extension Data {
 }
 
 
-func getMetamaskProviderPlugin() -> Plugin {
+public func getMetamaskProviderPlugin() -> Plugin {
     var plugin = MetamaskProvider()
     plugin.addMethod(name: "request", closure: plugin.request)
     plugin.addMethod(name: "waitForTransaction", closure: plugin.waitForTransaction)
