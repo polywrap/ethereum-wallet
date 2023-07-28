@@ -13,6 +13,6 @@ Pod::Spec.new do |s|
     s.pod_target_xcconfig = { 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
     s.source = { :git => "https://github.com/polywrap/ethereum-wallet.git", :branch => 'feat/swift-implementation' }
     s.static_framework = true
-    s.dependency 'PolywrapClient', '~> 0.0.4'
+    s.dependency 'PolywrapClient', '~> 0.0.5'
     s.dependency 'metamask-ios-sdk', '~> 0.2.0'
   end
