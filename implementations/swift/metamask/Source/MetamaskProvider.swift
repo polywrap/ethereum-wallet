@@ -3,7 +3,9 @@ import Foundation
 import Combine
 import PolywrapClient
 
-public class MetamaskProvider: PluginModule {
+public class MetamaskProvider: Plugin {
+    public var methodsMap: [String: PluginMethod] = [:]
+
     var provider: Ethereum
     var cancellables: Set<AnyCancellable> = []
     var result: Data?
@@ -47,7 +49,7 @@ public class MetamaskProvider: PluginModule {
 
     func request(args: ArgsRequest, completion: @escaping (Result<String, Error>) -> Void) {
         if !provider.connected {
-            return completion(.failure(ProviderError.NotConnected))
+            return completion(.failure(ProviderError.notConnected))
         }
 
         let initialParamsTx: [Transaction] = []
@@ -115,14 +117,16 @@ public class MetamaskProvider: PluginModule {
         }
     }
 
-    public func request(args: ArgsRequest) async -> String {
-        await withCheckedContinuation { continuation in
-            request(args: args) { result in
-                switch result {
-                case .success(let value):
-                    continuation.resume(returning: value)
-                case .failure(let error):
-                   print("Error in request: \(error)")
+    public func request(_ args: ArgsRequest, _ env: VoidCodable?, _ invoker: Invoker) throws -> String {
+        return try runBlocking {
+            try await withCheckedThrowingContinuation { continuation in
+                request(args: args) { result in
+                    switch result {
+                    case .success(let value):
+                        continuation.resume(returning: value)
+                    case .failure(let error):
+                        continuation.resume(throwing: error)
+                    }
                 }
             }
         }
@@ -131,7 +135,7 @@ public class MetamaskProvider: PluginModule {
 
     // Inspired from https://github.com/web3swift-team/web3swift/blob/develop/Sources/web3swift/Transaction/TransactionPollingTask.swift#L11
     // Probably it would be easier to add this library and use it?
-    public func waitForTransaction(args: ArgsWaitForTransaction) async -> Bool {
+    public func waitForTransaction(_ args: ArgsWaitForTransaction, _ env: VoidCodable?, _ invoker: Invoker) throws -> Bool {
         let startTime = Date()
         while true {
             do {
@@ -140,7 +144,10 @@ public class MetamaskProvider: PluginModule {
                     method: "eth_getTransactionReceipt",
                     params: String(data: jsonParams, encoding: .utf8)!
                 )
-                let receipt = await self.request(args: request)
+                let receipt = try runBlocking {
+                    return try self.request(request, env, invoker)
+                }
+
                 if receipt != "" {
                     if  try JSONSerialization.jsonObject(with: receipt.data(using: .utf8)!, options: []) is [String: Any] {
                         // Successfully converted Data to [String: Any]
@@ -152,7 +159,9 @@ public class MetamaskProvider: PluginModule {
                         delayUnit = delayUnit.nextDelayUnit
                     }
                 }
-                try await Task.sleep(nanoseconds: delayUnit.rawValue)
+                try runBlocking {
+                    try await Task.sleep(nanoseconds: delayUnit.rawValue)
+                }
             } catch {
                 print("Error in JSON Serialization from wait for transaction method \(error)")
             }
@@ -160,20 +169,16 @@ public class MetamaskProvider: PluginModule {
         }
     }
 
-    public func signTransaction(_ args: ArgsSignTransaction) async throws -> String {
-        throw ProviderError.MethodNotSupported
+    public func signTransaction(_ args: ArgsSignTransaction, _ env: VoidCodable?, _ invoker: Invoker) throws -> String {
+        throw ProviderError.methodNotSupported
     }
 
-    public func signMessage(_ args: ArgsSignMessage) async throws -> String {
-        throw ProviderError.MethodNotSupported
+    public func signMessage(_ args: ArgsSignMessage, _ env: VoidCodable?, _ invoker: Invoker) throws -> String {
+        throw ProviderError.methodNotSupported
     }
 
-    public func signerAddress(_ args: ArgsAddress) async -> String {
+    public func signerAddress(_ args: ArgsSignerAddress, _ env: VoidCodable?, _ invoker: Invoker) throws -> String? {
         self.provider.selectedAddress
-    }
-
-    public func chainId(_ args: ArgsChainId) async -> String {
-        self.provider.chainId
     }
 
     private func isTransactionMethod(_ method: String) -> Bool {
