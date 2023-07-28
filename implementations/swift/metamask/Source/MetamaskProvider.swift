@@ -5,15 +5,19 @@ import PolywrapClient
 
 public class MetamaskProvider: Plugin {
     public var methodsMap: [String: PluginMethod] = [:]
-
-    var provider: Ethereum
+    var provider: Ethereum?
     var cancellables: Set<AnyCancellable> = []
-    var result: Data?
 
-    public init(ethereum: Ethereum, dapp: Dapp) {
+    public init() {}
+
+    public func connect(ethereum: Ethereum, dapp: Dapp) {
         self.provider = ethereum
 
-        self.provider.connect(dapp)?.sink(receiveCompletion: { completion in
+        guard let provider = self.provider else {
+            return
+        }
+
+        provider.connect(dapp)?.sink(receiveCompletion: { completion in
             switch completion {
             case let .failure(error):
                 print("Error connecting to address: \(error)")
@@ -48,6 +52,10 @@ public class MetamaskProvider: Plugin {
    }
 
     func request(args: ArgsRequest, completion: @escaping (Result<String, Error>) -> Void) {
+        guard let provider = self.provider else {
+            return completion(.failure(ProviderError.notConnected))
+        }
+
         if !provider.connected {
             return completion(.failure(ProviderError.notConnected))
         }
@@ -178,7 +186,15 @@ public class MetamaskProvider: Plugin {
     }
 
     public func signerAddress(_ args: ArgsSignerAddress, _ env: VoidCodable?, _ invoker: Invoker) throws -> String? {
-        self.provider.selectedAddress
+        guard let provider = self.provider else {
+            return nil
+        }
+
+        if !provider.connected {
+            return nil
+        }
+
+        return provider.selectedAddress
     }
 
     private func isTransactionMethod(_ method: String) -> Bool {
@@ -268,4 +284,15 @@ extension Data {
     var hexString: String {
         return map { String(format: "%02x", $0) }.joined()
     }
+}
+
+
+func getMetamaskProviderPlugin() -> Plugin {
+    var plugin = MetamaskProvider()
+    plugin.addMethod(name: "request", closure: plugin.request)
+    plugin.addMethod(name: "waitForTransaction", closure: plugin.waitForTransaction)
+    plugin.addMethod(name: "signerAddress", closure: plugin.signerAddress)
+    plugin.addMethod(name: "signMessage", closure: plugin.signMessage)
+    plugin.addMethod(name: "signTransaction", closure: plugin.signTransaction)
+    return plugin
 }
