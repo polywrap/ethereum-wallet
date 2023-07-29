@@ -1,0 +1,10 @@
+{
+    "name": "@polywrap/ethereum-wallet-metamask-swift",
+    "description": "Polywrap Ethereum Metamask Wallet Plugin in swift",
+    "scripts": {
+      "codegen": "polywrap codegen -g ./Source/wrap"
+    },
+    "devDependencies": {
+      "polywrap": "0.11.0-pre.4"
+    }
+}
