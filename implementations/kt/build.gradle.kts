@@ -14,15 +14,23 @@ version = "0.10.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    }
+    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    maven { url = uri("https://jitpack.io") }
 }
+
+val kethereumVersion = "0.85.7"
 
 dependencies {
     implementation("io.polywrap:polywrap-client:0.10.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+//    implementation("com.github.walleth.kethereum:eip155:${kethereumVersion}")
+//    implementation("com.github.walleth.kethereum:erc681:${kethereumVersion}")
+//    implementation("com.github.walleth.kethereum:erc1450:${kethereumVersion}")
+//    implementation("com.github.walleth.kethereum:flows:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:extensions_transactions:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:rpc:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:model:${kethereumVersion}")
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }

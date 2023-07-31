@@ -6,7 +6,7 @@ import io.polywrap.plugin.PluginPackage
 import io.polywrap.plugins.ethereum.wrap.*
 
 /**
- * A plugin for making HTTP requests.
+ * A plugin for Ethereum provider and signer management.
  *
  * @property config An optional configuration object for the plugin.
  */
