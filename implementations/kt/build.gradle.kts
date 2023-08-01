@@ -31,6 +31,10 @@ dependencies {
     implementation("com.github.walleth.kethereum:extensions_transactions:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:rpc:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:model:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:crypto:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:erc712:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:rlp:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:eip1559_signer:${kethereumVersion}")
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }

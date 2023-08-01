@@ -31,10 +31,7 @@ class Connections(
 
     fun set(network: String, connection: String) = set(network, Connection.from(connection))
 
-    fun get(network: String? = null): Connection? {
-        val formattedNetwork = network?.lowercase() ?: defaultNetwork.lowercase()
-        return connections[formattedNetwork]
-    }
+    fun get(network: String): Connection? = connections[network.lowercase()]
 
     fun get(connection: SchemaConnection? = null): Connection {
         if (connection == null) {
