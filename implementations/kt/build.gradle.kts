@@ -1,6 +1,3 @@
-import org.jetbrains.dokka.DokkaConfiguration
-import org.jetbrains.dokka.gradle.DokkaTask
-
 plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
@@ -67,19 +64,5 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         exclude("**/resources/**")
         exclude("**/wrap/**")
         exclude("**/build.gradle.kts")
-    }
-}
-
-// dokka configuration
-tasks.withType<DokkaTask>().configureEach {
-    dokkaSourceSets {
-        configureEach {
-            documentedVisibilities.set(
-                setOf(
-                    DokkaConfiguration.Visibility.PUBLIC,
-                    DokkaConfiguration.Visibility.PROTECTED
-                )
-            )
-        }
     }
 }
