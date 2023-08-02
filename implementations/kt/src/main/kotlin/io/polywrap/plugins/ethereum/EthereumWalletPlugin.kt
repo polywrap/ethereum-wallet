@@ -4,7 +4,8 @@ import io.polywrap.core.Invoker
 import io.polywrap.plugin.PluginFactory
 import io.polywrap.plugin.PluginPackage
 import io.polywrap.plugins.ethereum.wrap.*
-import io.polywrap.plugins.ethereum.wrap.Connection as SchemaConnection
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import org.kethereum.crypto.*
 import org.kethereum.eip1559.signer.signViaEIP1559
 import org.kethereum.eip712.MoshiAdapter
@@ -53,31 +54,27 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
     }
 
     override suspend fun waitForTransaction(args: ArgsWaitForTransaction, invoker: Invoker): Boolean {
-        throw NotImplementedError("Not implemented")
-//        val connection = this.config.get(args.connection)
-//        val pollLatency = 100L // ms
-//        val confirmationLatency = 500L // ms
-//        val timeout = args.timeout?.toLong() ?: 300_000L // ms
-//
-//        return try {
-//            withTimeout(timeout) {
-//                var txReceipt: Json? = null
-//                while (txReceipt == null) {
-//                    txReceipt = getTransactionReceipt(args.txHash, args.connection, invoker)
-//                    delay(pollLatency)
-//                }
-//                val txBlockNumber = txReceipt["block_number"] as Long
-//                val targetBlockNumber = txBlockNumber + (args["confirmations"] as Long? ?: 0)
-//
-//                while (connection.provider.blockNumber()!!.toLong() < targetBlockNumber) {
-//                    delay(confirmationLatency)
-//                }
-//
-//                true
-//            }
-//        } catch (e: Exception) {
-//            throw Exception("Transaction timed out", e)
-//        }
+        val connection = this.config.get(args.connection)
+        val pollLatency = 100L // ms
+        val confirmationLatency = 500L // ms
+        val timeout = args.timeout?.toLong() ?: 300_000L // ms
+        val confirmations = args.confirmations.toLong()
+
+        return try {
+            withTimeout(timeout) {
+                var blockMined: Long? = connection.provider.getTransactionByHash(args.txHash)?.transaction?.blockNumber?.toLong()
+                while (blockMined == null) {
+                    delay(pollLatency)
+                    blockMined = connection.provider.getTransactionByHash(args.txHash)?.transaction?.blockNumber?.toLong()
+                }
+                while (connection.provider.blockNumber()!!.toLong() - blockMined + 1 < confirmations) {
+                    delay(confirmationLatency)
+                }
+                true
+            }
+        } catch (e: Exception) {
+            throw Exception("Transaction timed out", e)
+        }
     }
 
     override suspend fun signerAddress(args: ArgsSignerAddress, invoker: Invoker): String? {
@@ -122,15 +119,6 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         val parsed = parser.parseMessage(payload)
         val hash = typedDataHash(parsed.message, parsed.domain)
         return "0x" + signMessageHash(hash, signer).toHex()
-    }
-
-    private suspend fun getTransactionReceipt(txHash: String, connection: SchemaConnection?, invoker: Invoker): Json {
-        val data = ArgsRequest(
-            method = "eth_getTransactionReceipt",
-            params = "[\"$txHash\"]",
-            connection = connection
-        )
-        return this.request(data, invoker)
     }
 
     private fun RLPElement.toTransaction(): Transaction {
