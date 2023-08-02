@@ -43,7 +43,7 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
             }
 
             if (method == "eth_signTypedData_v4") {
-                val payload = params.substring(1, params.length - 1)
+                val payload = params.trim().split(",", limit = 2)[1].substringBeforeLast("]").trim()
                 val parsed = EIP712JsonParser(MoshiAdapter()).parseMessage(payload)
                 val hash = typedDataHash(parsed.message, parsed.domain)
                 return "0x" + signMessageHash(hash, signer).toHex()
@@ -55,11 +55,12 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
             }
         }
 
-        val response = connection.provider.stringCall(method, params)
-        if (response?.error != null) {
-            throw Exception("RPC Error. Code: ${response.error.code} Message: ${response.error.message}")
-        }
-        return response?.result ?: "{}"
+//        val response = connection.provider.stringCall(method, params)
+//        if (response?.error != null) {
+//            throw Exception("RPC Error. Code: ${response.error.code} Message: ${response.error.message}")
+//        }
+//        return response?.result ?: "{}"
+        return ""
     }
 
     override suspend fun waitForTransaction(args: ArgsWaitForTransaction, invoker: Invoker): Boolean {

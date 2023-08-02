@@ -119,7 +119,7 @@ class EthereumWalletPluginIntegrationTest {
 
     @Test
     fun `invokeByClient signTypedData`() = runTest {
-        val args = ArgsRequest("eth_signTypedData_v4", typedDataJsonString)
+        val args = ArgsRequest("eth_signTypedData_v4", "[\"0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1\", $typedDataJsonString]")
         val result: InvokeResult<String> = client.invoke(
             uri = uri,
             method = "request",
@@ -127,7 +127,7 @@ class EthereumWalletPluginIntegrationTest {
         )
         assertNull(result.exceptionOrNull())
         assertEquals(
-            "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"",
+            "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
             result.getOrThrow()
         )
     }
@@ -196,7 +196,7 @@ class EthereumWalletPluginIntegrationTest {
 
     @Test
     fun `invokeByClient signTypedData with local node`() = runTest {
-        val args = ArgsRequest("eth_signTypedData_v4", typedDataJsonString)
+        val args = ArgsRequest("eth_signTypedData_v4", "[\"0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1\", $typedDataJsonString]")
         val result: InvokeResult<String> = clientWithLocalNodeProvider.invoke(
             uri = uri,
             method = "request",
@@ -204,7 +204,7 @@ class EthereumWalletPluginIntegrationTest {
         )
         assertNull(result.exceptionOrNull())
         assertEquals(
-            "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"",
+            "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
             result.getOrThrow()
         )
     }

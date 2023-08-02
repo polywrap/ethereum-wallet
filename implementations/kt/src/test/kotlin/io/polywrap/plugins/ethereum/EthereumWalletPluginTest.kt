@@ -26,7 +26,7 @@ class EthereumWalletPluginTest {
     private val pluginWithLocalNodeProvider = EthereumWalletPlugin(
         Connections(
             networks = mutableMapOf(
-                "tesnet" to Connection(
+                "testnet" to Connection(
                     provider = "http://localhost:8545"
                 )
             ),
@@ -85,10 +85,10 @@ class EthereumWalletPluginTest {
 
     @Test
     fun signTypedData() = runTest {
-        val args = ArgsRequest("eth_signTypedData_v4", typedDataJsonString)
+        val args = ArgsRequest("eth_signTypedData_v4", "[\"0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1\", $typedDataJsonString]")
         val response = plugin.request(args, emptyMockInvoker)
         assertEquals(
-            "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"",
+            "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
             response
         )
     }
@@ -136,10 +136,10 @@ class EthereumWalletPluginTest {
 
     @Test
     fun `signTypedData with local node`() = runTest {
-        val args = ArgsRequest("eth_signTypedData_v4", typedDataJsonString)
+        val args = ArgsRequest("eth_signTypedData_v4", "[\"0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1\", $typedDataJsonString]")
         val response = pluginWithLocalNodeProvider.request(args, emptyMockInvoker)
         assertEquals(
-            "\"0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c\"",
+            "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
             response
         )
     }
