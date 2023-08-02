@@ -16,13 +16,8 @@ import org.kethereum.model.Transaction
 import org.kethereum.rlp.RLPElement
 import org.kethereum.rlp.RLPList
 import org.kethereum.rlp.toRLP
-import org.kethereum.rpc.EthereumRPC
 import pm.gnosis.eip712.EIP712JsonParser
 import pm.gnosis.eip712.typedDataHash
-
-fun EthereumRPC.stringCallplaceholder(function: String, params: String): String? {
-    return ""
-}
 
 /**
  * A plugin for Ethereum provider and signer management.
@@ -55,12 +50,16 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
             }
 
             if (method == "eth_sign") {
-                val message = params.substring(1, params.length - 1)
-                return locallySignMessage(message.encodeToByteArray(), signer)
+                val message = params.substring(1, params.length - 1).encodeToByteArray()
+                return locallySignMessage(message, signer)
             }
         }
 
-        return connection.provider.stringCallplaceholder(method, params) ?: "{}"
+        val response = connection.provider.stringCall(method, params)
+        if (response?.error != null) {
+            throw Exception("RPC Error. Code: ${response.error.code} Message: ${response.error.message}")
+        }
+        return response?.result ?: "{}"
     }
 
     override suspend fun waitForTransaction(args: ArgsWaitForTransaction, invoker: Invoker): Boolean {
