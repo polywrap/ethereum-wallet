@@ -25,6 +25,7 @@ dependencies {
     implementation("com.github.walleth.kethereum:rpc:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:model:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:crypto:${kethereumVersion}")
+    implementation("com.github.walleth.kethereum:crypto_impl_bouncycastle:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:erc712:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:rlp:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:eip1559_signer:${kethereumVersion}")

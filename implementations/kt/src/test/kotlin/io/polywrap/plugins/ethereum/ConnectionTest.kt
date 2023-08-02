@@ -10,9 +10,9 @@ import kotlin.test.assertNotNull
 
 class ConnectionTest {
 
-    val ethProvider = HttpEthereumRPC("http://localhost:8545")
-    val signerAddress = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1"
-    val testnet = Connection(
+    private val ethProvider = HttpEthereumRPC("http://localhost:8545")
+    private val signerAddress = "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1".lowercase()
+    private val testnet = Connection(
         provider = ethProvider,
         signer = "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"
     )

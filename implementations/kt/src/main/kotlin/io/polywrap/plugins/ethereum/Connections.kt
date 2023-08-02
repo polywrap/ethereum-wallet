@@ -11,12 +11,12 @@ import io.polywrap.plugins.ethereum.wrap.Connection as SchemaConnection
  * If no default network is specified, the default network will be set to "mainnet".
  */
 class Connections(
-    private var networks: MutableMap<String, Connection>,
+    private val networks: MutableMap<String, Connection>,
     private var defaultNetwork: String = "mainnet"
 ) {
 
     init {
-        networks.forEach { (network, connection) ->
+        networks.toMap().forEach { (network, connection) ->
             networks.remove(network)
             set(network, connection)
         }
