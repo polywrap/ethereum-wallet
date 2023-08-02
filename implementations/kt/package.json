@@ -9,5 +9,10 @@
   },
   "devDependencies": {
     "polywrap": "~0.11.0-pre.4"
+  },
+  "scripts": {
+    "test": "yarn infra:up && ./gradlew test && yarn infra:down",
+    "infra:up": "yarn polywrap infra up --modules=eth-ens-ipfs",
+    "infra:down": "yarn polywrap infra down --modules=eth-ens-ipfs"
   }
 }

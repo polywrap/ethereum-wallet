@@ -34,6 +34,3 @@ enum class KnownNetwork(val chainId: Long) {
         fun from(name: String): KnownNetwork? = KnownNetwork.entries.find { it.name == name }
     }
 }
-
-
-

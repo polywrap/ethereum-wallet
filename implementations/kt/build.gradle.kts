@@ -24,10 +24,6 @@ dependencies {
     implementation("io.polywrap:polywrap-client:0.10.0-SNAPSHOT")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-//    implementation("com.github.walleth.kethereum:eip155:${kethereumVersion}")
-//    implementation("com.github.walleth.kethereum:erc681:${kethereumVersion}")
-//    implementation("com.github.walleth.kethereum:erc1450:${kethereumVersion}")
-//    implementation("com.github.walleth.kethereum:flows:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:extensions_transactions:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:rpc:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:model:${kethereumVersion}")
@@ -35,6 +31,7 @@ dependencies {
     implementation("com.github.walleth.kethereum:erc712:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:rlp:${kethereumVersion}")
     implementation("com.github.walleth.kethereum:eip1559_signer:${kethereumVersion}")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
