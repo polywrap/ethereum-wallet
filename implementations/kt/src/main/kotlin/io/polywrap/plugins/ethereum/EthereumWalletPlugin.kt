@@ -38,16 +38,26 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         val params = args.params ?: "[]"
         val signer = connection.signer
 
-        if (method == "eth_sendTransaction" && signer != null) {
-            val rlp = params.substring(1, params.length - 1).encodeToByteArray()
-            val tx = rlp.toRLP().toTransaction()
-            val signature = tx.signViaEIP1559(signer)
-            val signedTx = tx.encode(signature).toHexString()
-            return connection.provider.sendRawTransaction(signedTx) ?: throw Exception("Failed to send transaction")
-        }
+        if (signer != null) {
+            if (method == "eth_sendTransaction") {
+                val rlp = params.substring(1, params.length - 1).encodeToByteArray()
+                val tx = rlp.toRLP().toTransaction()
+                val signature = tx.signViaEIP1559(signer)
+                val signedTx = tx.encode(signature).toHexString()
+                return connection.provider.sendRawTransaction(signedTx) ?: throw Exception("Failed to send transaction")
+            }
 
-        if (method == "eth_signTypedData_v4" && signer != null) {
-            return locallySignTypedData(params, connection.signer!!)
+            if (method == "eth_signTypedData_v4") {
+                val payload = params.substring(1, params.length - 1)
+                val parsed = EIP712JsonParser(MoshiAdapter()).parseMessage(payload)
+                val hash = typedDataHash(parsed.message, parsed.domain)
+                return "0x" + signMessageHash(hash, signer).toHex()
+            }
+
+            if (method == "eth_sign") {
+                val message = params.substring(1, params.length - 1)
+                return locallySignMessage(message.encodeToByteArray(), signer)
+            }
         }
 
         return connection.provider.stringCallplaceholder(method, params) ?: "{}"
@@ -79,46 +89,36 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 
     override suspend fun signerAddress(args: ArgsSignerAddress, invoker: Invoker): String? {
         val connection = this.config.get(args.connection)
-        return connection.signer?.toAddress()?.hex
+        val signer = connection.signer
+        if (signer == null) {
+            val accounts = request(ArgsRequest(method = "eth_accounts", connection = args.connection), invoker)
+            if (accounts.length < 2) {
+                return null
+            }
+            return accounts.substring(2, 44)
+        }
+        return signer.toAddress().hex
     }
 
     override suspend fun signMessage(args: ArgsSignMessage, invoker: Invoker): String {
         val connection = this.config.get(args.connection)
         val signer = connection.signer
-        if (signer == null) {
-            throw Exception("No signer configured for connection: ${args.connection}")
+        return if (signer == null) {
+            request(ArgsRequest(method = "eth_sign", connection = args.connection), invoker)
         } else {
-            return locallySignMessage(args.message, signer)
+            locallySignMessage(args.message, signer)
         }
     }
 
     override suspend fun signTransaction(args: ArgsSignTransaction, invoker: Invoker): String {
         val connection = this.config.get(args.connection)
-        val signer = connection.signer
-        if (signer == null) {
-            throw Exception("No signer configured for connection: ${args.connection}")
-        } else {
-            return locallySignTransaction(args.rlp, signer)
-        }
-    }
-
-    // returns signature as hex string
-    private fun locallySignMessage(message: ByteArray, signer: ECKeyPair): String {
-        return "0x" + signer.signMessage(message).toHex()
-    }
-
-    // returns signature as hex string
-    private fun locallySignTransaction(rlp: ByteArray, signer: ECKeyPair): String {
-        val tx = rlp.toRLP().toTransaction()
+        val signer = connection.signer ?: throw Exception("No signer configured for connection: ${args.connection}")
+        val tx = args.rlp.toRLP().toTransaction()
         return "0x" + tx.signViaEIP1559(signer).toHex()
     }
 
-    // returns signature as hex string
-    private fun locallySignTypedData(payload: Json, signer: ECKeyPair): String {
-        val parser = EIP712JsonParser(MoshiAdapter())
-        val parsed = parser.parseMessage(payload)
-        val hash = typedDataHash(parsed.message, parsed.domain)
-        return "0x" + signMessageHash(hash, signer).toHex()
+    private fun locallySignMessage(message: ByteArray, signer: ECKeyPair): String {
+        return "0x" + signer.signMessage(message).toHex()
     }
 
     private fun RLPElement.toTransaction(): Transaction {

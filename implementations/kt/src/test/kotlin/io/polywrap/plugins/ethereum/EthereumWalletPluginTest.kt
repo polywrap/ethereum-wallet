@@ -57,6 +57,7 @@ class EthereumWalletPluginTest {
         val response = plugin.signerAddress(args, emptyMockInvoker)
         assertNotNull(response)
         assertTrue(response.startsWith("0x"))
+        assertTrue(response.length == 42)
     }
 
     @Test
