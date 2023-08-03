@@ -7,15 +7,8 @@ import io.polywrap.plugins.ethereum.wrap.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import org.kethereum.crypto.*
-import org.kethereum.eip1559.signer.signViaEIP1559
 import org.kethereum.eip712.MoshiAdapter
-import org.kethereum.extensions.transactions.encode
-import org.kethereum.extensions.transactions.toTransaction
 import org.kethereum.model.ECKeyPair
-import org.kethereum.model.Transaction
-import org.kethereum.rlp.RLPElement
-import org.kethereum.rlp.RLPList
-import org.kethereum.rlp.toRLP
 import pm.gnosis.eip712.EIP712JsonParser
 import pm.gnosis.eip712.typedDataHash
 
@@ -24,7 +17,6 @@ import pm.gnosis.eip712.typedDataHash
  *
  * @property config An optional configuration object for the plugin.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 
     override suspend fun request(args: ArgsRequest, invoker: Invoker): Json {
@@ -34,13 +26,13 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         val signer = connection.signer
 
         if (signer != null) {
-            if (method == "eth_sendTransaction") {
-                val rlp = params.substring(1, params.length - 1).encodeToByteArray()
-                val tx = rlp.toRLP().toTransaction()
-                val signature = tx.signViaEIP1559(signer)
-                val signedTx = tx.encode(signature).toHexString()
-                return connection.provider.sendRawTransaction(signedTx) ?: throw Exception("Failed to send transaction")
-            }
+//            if (method == "eth_sendTransaction") {
+//                val rlp = params.substring(1, params.length - 1).encodeToByteArray()
+//                val tx = rlp.toRLP().toTransaction()
+//                val signature = tx.signViaEIP1559(signer)
+//                val signedTx = tx.encode(signature).toHexString()
+//                return connection.provider.sendRawTransaction(signedTx) ?: throw Exception("Failed to send transaction")
+//            }
 
             if (method == "eth_signTypedData_v4") {
                 val payload = params.trim().split(",", limit = 2)[1].substringBeforeLast("]").trim()
@@ -113,16 +105,16 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
     override suspend fun signTransaction(args: ArgsSignTransaction, invoker: Invoker): String {
         val connection = this.config.get(args.connection)
         val signer = connection.signer ?: throw Exception("No signer configured for connection: ${args.connection}")
-        val tx = args.rlp.toRLP().toTransaction()
-        return "0x" + tx.signViaEIP1559(signer).toHex()
+        return "0x" + signer.signMessage(args.rlp).toHex()
     }
 
     private fun locallySignMessage(message: ByteArray, signer: ECKeyPair): String {
-        return "0x" + signer.signMessage(message).toHex()
+        val len = message.size.toString().encodeToByteArray()
+        return "0x" + signer.signMessage(MESSAGE_PREFIX + len + message).toHex()
     }
 
-    private fun RLPElement.toTransaction(): Transaction {
-        return RLPList(listOf(this)).toTransaction() ?: throw Exception("Failed to parse transaction")
+    companion object {
+        val MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n".encodeToByteArray()
     }
 }
 
