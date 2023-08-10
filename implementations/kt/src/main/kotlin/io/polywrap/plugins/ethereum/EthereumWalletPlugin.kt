@@ -8,7 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import org.kethereum.crypto.*
 import org.kethereum.eip712.MoshiAdapter
-import org.kethereum.model.ECKeyPair
+import org.kethereum.model.Address
 import pm.gnosis.eip712.EIP712JsonParser
 import pm.gnosis.eip712.typedDataHash
 
@@ -22,7 +22,14 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
     override suspend fun request(args: ArgsRequest, invoker: Invoker): Json {
         val connection = this.config.get(args.connection)
         val method = args.method
-        val params = args.params ?: "[]"
+        val params = args.params?.trim()?.let {
+            if (it.startsWith("[") && it.endsWith("]")) {
+                it.substring(1, it.length - 1)
+            } else {
+                it
+            }
+        }
+        val provider = connection.provider
         val signer = connection.signer
 
         if (signer != null) {
@@ -35,24 +42,34 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 //            }
 
             if (method == "eth_signTypedData_v4") {
-                val payload = params.trim().split(",", limit = 2)[1].substringBeforeLast("]").trim()
+                val payload = params!!.split(",", limit = 2)[1].trim()
                 val parsed = EIP712JsonParser(MoshiAdapter()).parseMessage(payload)
                 val hash = typedDataHash(parsed.message, parsed.domain)
                 return "0x" + signMessageHash(hash, signer).toHex()
             }
-
-            if (method == "eth_sign") {
-                val message = params.substring(1, params.length - 1).encodeToByteArray()
-                return locallySignMessage(message, signer)
-            }
         }
 
-//        val response = connection.provider.stringCall(method, params)
-//        if (response?.error != null) {
-//            throw Exception("RPC Error. Code: ${response.error.code} Message: ${response.error.message}")
-//        }
-//        return response?.result ?: "{}"
-        return ""
+        when (method) {
+            "eth_chainId" -> {
+                return provider.chainId()?.value?.toString() ?: "{}"
+            }
+            "eth_sign" -> {
+                val message = params!!.encodeToByteArray()
+                return signMessage(ArgsSignMessage(message, args.connection), invoker)
+            }
+            "eth_getTransactionCount" -> {
+                val (address, block) = params!!.replace("\"", "").split(",").map { it.trim() }
+                return provider.getTransactionCount(Address(address), block)?.toString() ?: "{}"
+            }
+            else -> {
+                val response = params?.let { provider.stringCall(method, it) } ?: provider.stringCall(method)
+
+                if (response?.error != null) {
+                    throw Exception("RPC Error. Code: ${response.error?.code} Message: ${response.error?.message}")
+                }
+                return response?.result ?: "{}"
+            }
+        }
     }
 
     override suspend fun waitForTransaction(args: ArgsWaitForTransaction, invoker: Invoker): Boolean {
@@ -81,36 +98,28 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 
     override suspend fun signerAddress(args: ArgsSignerAddress, invoker: Invoker): String? {
         val connection = this.config.get(args.connection)
-        val signer = connection.signer
-        if (signer == null) {
-            val accounts = request(ArgsRequest(method = "eth_accounts", connection = args.connection), invoker)
-            if (accounts.length < 2) {
-                return null
-            }
-            return accounts.substring(2, 44)
-        }
-        return signer.toAddress().hex
+        return connection.signer?.toAddress()?.hex
+            ?: connection.provider.accounts()?.get(0)?.hex
     }
 
     override suspend fun signMessage(args: ArgsSignMessage, invoker: Invoker): String {
         val connection = this.config.get(args.connection)
         val signer = connection.signer
         return if (signer == null) {
-            request(ArgsRequest(method = "eth_sign", connection = args.connection), invoker)
+            val address = signerAddress(ArgsSignerAddress(args.connection), invoker)
+                ?: throw Exception("No signer configured for connection: $connection")
+            connection.provider.sign(Address(address), args.message)?.toHex()
+                ?: throw Exception("Failed to sign message")
         } else {
-            locallySignMessage(args.message, signer)
+            val len = args.message.size.toString().encodeToByteArray()
+            return "0x" + signer.signMessage(MESSAGE_PREFIX + len + args.message).toHex()
         }
     }
 
     override suspend fun signTransaction(args: ArgsSignTransaction, invoker: Invoker): String {
         val connection = this.config.get(args.connection)
-        val signer = connection.signer ?: throw Exception("No signer configured for connection: ${args.connection}")
+        val signer = connection.signer ?: throw Exception("No wallet configured for connection: $connection")
         return "0x" + signer.signMessage(args.rlp).toHex()
-    }
-
-    private fun locallySignMessage(message: ByteArray, signer: ECKeyPair): String {
-        val len = message.size.toString().encodeToByteArray()
-        return "0x" + signer.signMessage(MESSAGE_PREFIX + len + message).toHex()
     }
 
     companion object {

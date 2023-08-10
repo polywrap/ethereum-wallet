@@ -6,6 +6,7 @@ import io.polywrap.plugins.ethereum.wrap.ArgsSignMessage
 import io.polywrap.plugins.ethereum.wrap.ArgsSignTransaction
 import io.polywrap.plugins.ethereum.wrap.ArgsSignerAddress
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.assertThrows
 import typedDataJsonString
 import kotlin.test.*
 
@@ -127,11 +128,11 @@ class EthereumWalletPluginTest {
             .map { it.toByte() }
             .toByteArray()
         val args = ArgsSignTransaction(rlp = rlp)
-        val response = pluginWithLocalNodeProvider.signTransaction(args, emptyMockInvoker)
-        assertEquals(
-            "0xeb91a997a865e2e4a48c098ea519666ed7fa5d9922f4e7e9b6838dc18ecfdab03a568682c3f0a4cb6b78ef0f601117a0de9848c089c94c01f782f067404c1eae1b",
-            response
-        )
+        assertThrows<Exception>("No wallet configured for connection") {
+            runTest {
+                pluginWithLocalNodeProvider.signTransaction(args, emptyMockInvoker)
+            }
+        }
     }
 
     @Test
