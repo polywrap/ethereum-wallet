@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
     s.name             = 'MetamaskProviderPlugin'
-    s.version          = '0.0.3'
+    s.version          = '0.0.4'
     s.summary          = 'Metamask ethereum wallet plugin'
     s.homepage         = 'https://github.com/polywrap/ethereum-wallet'
     s.license          = 'MIT'

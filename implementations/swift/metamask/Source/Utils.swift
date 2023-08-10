@@ -97,7 +97,7 @@ public enum KnownCodable: Codable {
         } else if let stringValue = try? container.decode(String.self) {
             self = .string(stringValue)
         } else if let dictValue = try? container.decode([String: KnownCodable].self) {
-            self = .dict(stringStringDictValue)
+            self = .dict(dictValue)
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
