@@ -55,7 +55,6 @@ public class MetamaskProvider: Plugin {
    }
 
     func request(args: ArgsRequest, completion: @escaping (Result<String, Error>) -> Void) {
-        print("getting here...")
         guard let provider = self.provider else {
             return completion(.failure(ProviderError.notConnected))
         }
