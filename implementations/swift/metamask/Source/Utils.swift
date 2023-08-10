@@ -85,21 +85,23 @@ public enum ProviderError: Error {
     case dataCorruptedError
 }
 
-public enum StringOrInt: Codable {
+public enum KnownCodable: Codable {
     case string(String)
     case int(Int)
+    case dict([String: KnownCodable])
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-
         if let typedDataValue = try? container.decode(Int.self) {
             self = .int(typedDataValue)
         } else if let stringValue = try? container.decode(String.self) {
             self = .string(stringValue)
+        } else if let dictValue = try? container.decode([String: KnownCodable].self) {
+            self = .dict(stringStringDictValue)
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
-                debugDescription: "Unable to decode StringOrInt"
+                debugDescription: "Unable to decode KnownCodable"
             )
         }
     }
@@ -110,11 +112,12 @@ public enum StringOrInt: Codable {
         switch self {
         case .string(let stringValue):
             try container.encode(stringValue)
-        case .int(let int):
-            try container.encode(int)
+        case .int(let intValue):
+            try container.encode(intValue)
+        case .dict(let dictionaryValue):
+            try container.encode(dictionaryValue)
         }
     }
-
 }
 
 public enum TxOrString: Codable {
@@ -199,56 +202,15 @@ public struct CustomBoolOrStringArray: CodableData {
 }
 
 public struct Domain: Codable {
-    var chainId: Int
-    var verifyingContract: String
+    public var name: String
+    public var version: String
+    public var chainId: Int
+    public var verifyingContract: String
 }
 
 public struct TypedData: Codable {
     var domain: Domain
-    var message: [String: StringOrInt]
+    var message: [String: KnownCodable]
     var primaryType: String
     var types: [String: [String: String]]
-}
-
-enum AddressOrTypedData: Codable {
-    case string(String)
-    case typedData(TypedData)
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-
-        if let typedDataValue = try? container.decode(TypedData.self) {
-            self = .typedData(typedDataValue)
-        } else if let stringValue = try? container.decode(String.self) {
-            self = .string(stringValue)
-        } else {
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Unable to decode AddressOrTypedData"
-            )
-        }
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-
-        switch self {
-        case .string(let stringValue):
-            try container.encode(stringValue)
-        case .typedData(let typedDatavalue):
-            try container.encode(typedDatavalue)
-        }
-    }
-
-    func toString() -> String {
-        switch self {
-        case .typedData(let v):
-            let encoder = JSONEncoder()
-            let jsonData = try! encoder.encode(v)
-            let string = String(data: jsonData, encoding: .utf8)!
-            return string
-        case.string(let v):
-            return v
-        }
-    }
 }

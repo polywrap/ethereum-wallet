@@ -7,6 +7,7 @@ public class MetamaskProvider: Plugin {
     public var methodsMap: [String: PluginMethod] = [:]
     var provider: Ethereum?
     var cancellables: Set<AnyCancellable> = []
+    var address: String?
 
     public init() {}
 
@@ -23,9 +24,11 @@ public class MetamaskProvider: Plugin {
                 print("Error connecting to address: \(error)")
             default: break
             }
-        }, receiveValue: { value in
-            print("Wallet connected! \(value)")
-        }).store(in: &cancellables)
+        }, receiveValue: { address in
+            if let stringAddress = address as? String {
+                self.address = stringAddress
+            } 
+         }).store(in: &cancellables)
     }
 
     func executeRequest(publisher: EthereumPublisher?, completion: @escaping (Result<String, Error>) -> Void) {
@@ -52,6 +55,7 @@ public class MetamaskProvider: Plugin {
    }
 
     func request(args: ArgsRequest, completion: @escaping (Result<String, Error>) -> Void) {
+        print("getting here...")
         guard let provider = self.provider else {
             return completion(.failure(ProviderError.notConnected))
         }
@@ -93,13 +97,21 @@ public class MetamaskProvider: Plugin {
                 handleGetBlockByNumber(block: "latest", includeTx: false, completion: completion)
             } else if args.method == "eth_signTypedData_v4" {
                 if let params = args.params {
-                    let json = params.data(using: .utf8)!
-                    let jsonDecoder = JSONDecoder()
-                    let mixedArray = try! jsonDecoder.decode([AddressOrTypedData].self, from: json)
-                    let params = [mixedArray[0].toString(), mixedArray[1].toString()]
-                    let request = EthereumRequest(method: args.method, params: params)
-                    let publisher = provider.request(request)
-                    executeRequest(publisher: publisher, completion: completion)
+                    if let jsonData = params.data(using: .utf8),
+                       let mixedArray = try? JSONSerialization.jsonObject(with: jsonData) as? [Any],
+                       mixedArray.count >= 2 {
+                        // Convert the first element to string
+                        let address = String(describing: mixedArray[0])
+
+                        // Convert the second element back to JSON string
+                        if let signMessage = try? JSONSerialization.data(withJSONObject: mixedArray[1]),
+                           let messageAsString = String(data: signMessage, encoding: .utf8) {
+                            let params = [address, messageAsString]
+                            let request = EthereumRequest(method: args.method, params: params)
+                            let publisher = provider.request(request)
+                            executeRequest(publisher: publisher, completion: completion)
+                        }
+                    }
                 }
             } else if args.method == "eth_feeHistory" {
                 handleFeeHistory(blockCount: "0xa", newestBlock: "latest", rewardPercentiles: [5.0], completion: completion)
@@ -186,15 +198,7 @@ public class MetamaskProvider: Plugin {
     }
 
     public func signerAddress(_ args: ArgsSignerAddress, _ env: VoidCodable?, _ invoker: Invoker) throws -> String? {
-        guard let provider = self.provider else {
-            return nil
-        }
-
-        if !provider.connected {
-            return nil
-        }
-
-        return provider.selectedAddress
+        self.address
     }
 
     private func isTransactionMethod(_ method: String) -> Bool {
@@ -287,7 +291,7 @@ extension Data {
 }
 
 
-public func getMetamaskProviderPlugin() -> Plugin {
+public func getMetamaskProviderPlugin() -> MetamaskProvider {
     var plugin = MetamaskProvider()
     plugin.addMethod(name: "request", closure: plugin.request)
     plugin.addMethod(name: "waitForTransaction", closure: plugin.waitForTransaction)
