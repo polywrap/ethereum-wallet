@@ -19,6 +19,10 @@ import pm.gnosis.eip712.typedDataHash
  */
 class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 
+    companion object {
+        val MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n".encodeToByteArray()
+    }
+
     override suspend fun request(args: ArgsRequest, invoker: Invoker): Json {
         val connection = this.config.get(args.connection)
         val method = args.method
@@ -72,6 +76,33 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         }
     }
 
+    override suspend fun signerAddress(args: ArgsSignerAddress, invoker: Invoker): String? {
+        val connection = this.config.get(args.connection)
+        return connection.signer?.toAddress()?.hex
+            ?: connection.provider.accounts()?.get(0)?.hex
+    }
+
+    override suspend fun signMessage(args: ArgsSignMessage, invoker: Invoker): String {
+        val connection = this.config.get(args.connection)
+        val signer = connection.signer
+        return if (signer == null) {
+            val address = signerAddress(ArgsSignerAddress(args.connection), invoker)
+                ?: throw Exception("No signer configured for connection: $connection")
+            val signature = connection.provider.sign(Address(address), args.message)?.toHex()
+                ?: throw Exception("Failed to sign message")
+            "0x$signature"
+        } else {
+            val len = args.message.size.toString().encodeToByteArray()
+            "0x" + signer.signMessage(MESSAGE_PREFIX + len + args.message).toHex()
+        }
+    }
+
+    override suspend fun signTransaction(args: ArgsSignTransaction, invoker: Invoker): String {
+        val connection = this.config.get(args.connection)
+        val signer = connection.signer ?: throw Exception("No wallet configured for connection: $connection")
+        return "0x" + signer.signMessage(args.rlp).toHex()
+    }
+
     override suspend fun waitForTransaction(args: ArgsWaitForTransaction, invoker: Invoker): Boolean {
         val connection = this.config.get(args.connection)
         val pollLatency = 100L // ms
@@ -94,36 +125,6 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         } catch (e: Exception) {
             throw Exception("Transaction timed out", e)
         }
-    }
-
-    override suspend fun signerAddress(args: ArgsSignerAddress, invoker: Invoker): String? {
-        val connection = this.config.get(args.connection)
-        return connection.signer?.toAddress()?.hex
-            ?: connection.provider.accounts()?.get(0)?.hex
-    }
-
-    override suspend fun signMessage(args: ArgsSignMessage, invoker: Invoker): String {
-        val connection = this.config.get(args.connection)
-        val signer = connection.signer
-        return if (signer == null) {
-            val address = signerAddress(ArgsSignerAddress(args.connection), invoker)
-                ?: throw Exception("No signer configured for connection: $connection")
-            connection.provider.sign(Address(address), args.message)?.toHex()
-                ?: throw Exception("Failed to sign message")
-        } else {
-            val len = args.message.size.toString().encodeToByteArray()
-            return "0x" + signer.signMessage(MESSAGE_PREFIX + len + args.message).toHex()
-        }
-    }
-
-    override suspend fun signTransaction(args: ArgsSignTransaction, invoker: Invoker): String {
-        val connection = this.config.get(args.connection)
-        val signer = connection.signer ?: throw Exception("No wallet configured for connection: $connection")
-        return "0x" + signer.signMessage(args.rlp).toHex()
-    }
-
-    companion object {
-        val MESSAGE_PREFIX = "\u0019Ethereum Signed Message:\n".encodeToByteArray()
     }
 }
 
