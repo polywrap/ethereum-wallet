@@ -37,6 +37,7 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
         val signer = connection.signer
 
         if (signer != null) {
+            // TODO: KEthereum does not provide a simple way to convert an RLP byte array to a transaction. Need to research this.
 //            if (method == "eth_sendTransaction") {
 //                val rlp = params.substring(1, params.length - 1).encodeToByteArray()
 //                val tx = rlp.toRLP().toTransaction()
