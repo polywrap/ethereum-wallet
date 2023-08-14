@@ -16,6 +16,10 @@
         "name": "javascript-plugin",
         "path": "implementations/js"
       },
+      {
+        "name": "kotlin-plugin",
+        "path": "implementations/kt"
+      },
   ],
   "settings": {
       "files.exclude": {

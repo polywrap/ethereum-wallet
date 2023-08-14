@@ -17,6 +17,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Read .nvmrc
+        run: echo ::set-output name=NVMRC::$(cat .nvmrc)
+        id: nvm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: '${{ steps.nvm.outputs.NVMRC }}'
+
+      - name: Install dependencies
+        run: yarn install --nonInteractive --frozen-lockfile --prefer-offline
+        working-directory: ./implementations/kt
+
+      - name: Start Ganache
+        run: yarn polywrap infra up --modules=eth-ens-ipfs
+        working-directory: ./implementations/kt
+
       - name: Build and test
         run: ./gradlew build
+        working-directory: ./implementations/kt
+
+      - name: Stop Ganache
+        run: yarn polywrap infra down --modules=eth-ens-ipfs
         working-directory: ./implementations/kt
