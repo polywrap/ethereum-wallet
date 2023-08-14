@@ -3,19 +3,24 @@ package io.polywrap.plugins.ethereum
 import io.polywrap.configBuilder.polywrapClient
 import io.polywrap.core.InvokeResult
 import io.polywrap.core.resolution.Uri
-import io.polywrap.plugins.ethereum.wrap.ArgsRequest
+import io.polywrap.plugins.ethereum.wrap.Connection
+import io.polywrap.plugins.ethereum.wrap.Json
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import kotlinx.serialization.Serializable
 import typedDataJsonString
+import kotlin.test.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-class EthereumExample {
+class EthersExample {
 
-    private val uri = Uri("wrap://ens/wraps.eth:ethereum-provider@2.0.0")
+    private val ethersWrapUri = Uri("wrapscan.io/polywrap/ethers@1.0.0")
+    private val pluginUri = Uri("plugin/ethereum-wallet@1.0")
+
     private val client = polywrapClient {
+        addDefaults()
         setPackage(
-            uri.toString() to ethereumWalletPlugin(
+            pluginUri.toString() to ethereumWalletPlugin(
                 Connections(
                     networks = mutableMapOf(
                         "testnet" to Connection(
@@ -30,11 +35,16 @@ class EthereumExample {
 
     @Test
     fun signTypedData() = runTest {
-        val args = ArgsRequest("eth_signTypedData_v4", "[\"0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1\", $typedDataJsonString]")
+        @Serializable
+        class ArgsSignTypedData(
+            val payload: Json,
+            val connection: Connection? = null
+        )
+
         val result: InvokeResult<String> = client.invoke(
-            uri = uri,
-            method = "request",
-            args = args
+            uri = ethersWrapUri,
+            method = "signTypedData",
+            args = ArgsSignTypedData(typedDataJsonString)
         )
         assertNull(result.exceptionOrNull())
         assertEquals(

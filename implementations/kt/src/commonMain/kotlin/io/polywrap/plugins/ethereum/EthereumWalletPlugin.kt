@@ -56,7 +56,8 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
 
         when (method) {
             "eth_chainId" -> {
-                return provider.chainId()?.value?.toString() ?: "{}"
+                return provider.chainId()?.value?.toString(16)?.let { "0x$it" }
+                    ?: throw Exception("Failed to get chain ID")
             }
             "eth_sign" -> {
                 val message = params!!.encodeToByteArray()
@@ -64,7 +65,8 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
             }
             "eth_getTransactionCount" -> {
                 val (address, block) = params!!.replace("\"", "").split(",").map { it.trim() }
-                return provider.getTransactionCount(Address(address), block)?.toString() ?: "{}"
+                return provider.getTransactionCount(Address(address), block)?.toString()
+                    ?: throw Exception("Failed to get transaction count")
             }
             else -> {
                 val response = params?.let { provider.stringCall(method, it) } ?: provider.stringCall(method)
@@ -72,7 +74,7 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
                 if (response?.error != null) {
                     throw Exception("RPC Error. Code: ${response.error?.code} Message: ${response.error?.message}")
                 }
-                return response?.result ?: "{}"
+                return response?.result ?: throw Exception("Failed to get response")
             }
         }
     }

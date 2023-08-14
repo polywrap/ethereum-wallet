@@ -10,7 +10,7 @@ import kotlin.test.*
 
 class EthereumWalletPluginIntegrationTest {
 
-    private val uri = Uri("wrap://ens/wraps.eth:ethereum-provider@2.0.0")
+    private val uri = Uri("wrapscan.io/polywrap/ethereum-wallet@1.0")
 
     private val client = polywrapClient {
         setPackage(
@@ -52,7 +52,8 @@ class EthereumWalletPluginIntegrationTest {
             args = args
         )
         assertNull(result.exceptionOrNull())
-        assertEquals("56", result.getOrThrow())
+        val chainId = result.getOrThrow().substring(2).toBigInteger(16).toString()
+        assertEquals("56", chainId)
     }
 
     @Test

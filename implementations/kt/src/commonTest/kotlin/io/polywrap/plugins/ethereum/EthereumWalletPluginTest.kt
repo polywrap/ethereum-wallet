@@ -38,7 +38,8 @@ class EthereumWalletPluginTest {
     fun eth_chainId() = runTest {
         val args = ArgsRequest(method = "eth_chainId")
         val response = plugin.request(args, emptyMockInvoker)
-        assertEquals("56", response)
+        val chainId = response.substring(2).toBigInteger(16).toString()
+        assertEquals("56", chainId)
     }
 
     @Test
