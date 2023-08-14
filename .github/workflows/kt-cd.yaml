@@ -22,6 +22,7 @@ jobs:
 
       - name: Build and test
         run: ./gradlew build
+        working-directory: ./implementations/kt
 
       - name: Publish
         run: ./gradlew publish
@@ -31,3 +32,4 @@ jobs:
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        working-directory: ./implementations/kt
