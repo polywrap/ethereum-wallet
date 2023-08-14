@@ -1,0 +1,18 @@
+{
+  "name": "ethereum-wallet-plugin",
+  "description": "Polywrap Ethereum Wallet Kotlin Plugin",
+  "version": "0.10.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/polywrap/ethereum-wallet.git"
+  },
+  "devDependencies": {
+    "polywrap": "~0.11.0-pre.4"
+  },
+  "scripts": {
+    "test": "yarn infra:up && ./gradlew test && yarn infra:down",
+    "infra:up": "yarn polywrap infra up --modules=eth-ens-ipfs",
+    "infra:down": "yarn polywrap infra down --modules=eth-ens-ipfs"
+  }
+}

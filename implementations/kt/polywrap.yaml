@@ -1,0 +1,10 @@
+format: 0.4.0
+project:
+  type: plugin/kotlin
+  name: ethereum-wallet-kt
+source:
+  module: ./src/main/kotlin/io/polywrap/plugins/ethereum/EthereumWalletPlugin.kt
+  schema: ./polywrap.graphql
+  import_abis:
+    - uri: "wrapscan.io/polywrap/ethereum-wallet@1.0"
+      abi: ../../interface/polywrap.graphql
