@@ -7,7 +7,7 @@ plugins {
     id("convention.publication")
 }
 
-group = "io.polywrap"
+group = "io.polywrap.plugins"
 version = "0.10.0-SNAPSHOT"
 
 repositories {
@@ -28,8 +28,7 @@ kotlin {
         publishLibraryVariants("release")
     }
 
-//    val kethereumVersion = "0.85.7"
-    val kethereumVersion = "PR149-SNAPSHOT"
+    val kethereumVersion = "0.86.0"
 
     sourceSets {
         val commonMain by getting {
@@ -58,7 +57,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.polywrap.ethereumWalletPlugin"
+    namespace = "io.polywrap.plugins.ethereumWallet"
     compileSdk = 32
     defaultConfig.minSdk = 24
     compileOptions {

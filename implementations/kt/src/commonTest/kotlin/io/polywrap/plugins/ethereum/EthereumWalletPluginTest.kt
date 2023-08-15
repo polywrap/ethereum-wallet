@@ -38,7 +38,8 @@ class EthereumWalletPluginTest {
     fun eth_chainId() = runTest {
         val args = ArgsRequest(method = "eth_chainId")
         val response = plugin.request(args, emptyMockInvoker)
-        assertEquals("56", response)
+        val chainId = response.replace("\"", "").substring(2).toBigInteger(16).toString()
+        assertEquals("56", chainId)
     }
 
     @Test
@@ -48,7 +49,7 @@ class EthereumWalletPluginTest {
             params = "[\"0x3f349bBaFEc1551819B8be1EfEA2fC46cA749aA1\", \"latest\"]"
         )
         val response = plugin.request(args, emptyMockInvoker)
-        assertTrue(response.toBigInteger() > 0.toBigInteger())
+        assertTrue(response.replace("\"", "").toBigInteger() > 0.toBigInteger())
     }
 
     @Test
@@ -89,7 +90,7 @@ class EthereumWalletPluginTest {
         val response = plugin.request(args, emptyMockInvoker)
         assertEquals(
             "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
-            response
+            response.replace("\"", "")
         )
     }
 
@@ -100,7 +101,7 @@ class EthereumWalletPluginTest {
             params = "[\"0x3f349bBaFEc1551819B8be1EfEA2fC46cA749aA1\", \"latest\"]"
         )
         val response = plugin.request(args, emptyMockInvoker)
-        assertTrue(response.toBigInteger() > 0.toBigInteger())
+        assertTrue(response.replace("\"", "").toBigInteger() > 0.toBigInteger())
     }
 
     @Test
@@ -140,7 +141,7 @@ class EthereumWalletPluginTest {
         val response = pluginWithLocalNodeProvider.request(args, emptyMockInvoker)
         assertEquals(
             "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
-            response
+            response.replace("\"", "")
         )
     }
 }
