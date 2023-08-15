@@ -11,6 +11,7 @@ import typedDataJsonString
 import kotlin.test.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.time.Duration
 
 class EthersExample {
 
@@ -34,7 +35,7 @@ class EthersExample {
     }
 
     @Test
-    fun signTypedData() = runTest {
+    fun signTypedData() = runTest(timeout = Duration.parse("30s")) {
         @Serializable
         class ArgsSignTypedData(
             val payload: Json,
