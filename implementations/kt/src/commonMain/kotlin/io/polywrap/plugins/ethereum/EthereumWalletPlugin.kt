@@ -50,22 +50,24 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
                 val payload = params!!.split(",", limit = 2)[1].trim()
                 val parsed = EIP712JsonParser(MoshiAdapter()).parseMessage(payload)
                 val hash = typedDataHash(parsed.message, parsed.domain)
-                return "0x" + signMessageHash(hash, signer).toHex()
+                val signature = signMessageHash(hash, signer).toHex()
+                return "\"0x$signature\""
             }
         }
 
         when (method) {
             "eth_chainId" -> {
-                return provider.chainId()?.value?.toString(16)?.let { "0x$it" }
+                return provider.chainId()?.value?.toString(16)?.let { "\"0x$it\"" }
                     ?: throw Exception("Failed to get chain ID")
             }
             "eth_sign" -> {
                 val message = params!!.encodeToByteArray()
-                return signMessage(ArgsSignMessage(message, args.connection), invoker)
+                val signature = signMessage(ArgsSignMessage(message, args.connection), invoker)
+                return "\"$signature\""
             }
             "eth_getTransactionCount" -> {
                 val (address, block) = params!!.replace("\"", "").split(",").map { it.trim() }
-                return provider.getTransactionCount(Address(address), block)?.toString()
+                return provider.getTransactionCount(Address(address), block)?.let { "\"${it}\"" }
                     ?: throw Exception("Failed to get transaction count")
             }
             else -> {
@@ -74,7 +76,7 @@ class EthereumWalletPlugin(config: Connections) : Module<Connections>(config) {
                 if (response?.error != null) {
                     throw Exception("RPC Error. Code: ${response.error?.code} Message: ${response.error?.message}")
                 }
-                return response?.result ?: throw Exception("Failed to get response")
+                return response?.result?.let { "\"$it\"" } ?: throw Exception("Failed to get response")
             }
         }
     }

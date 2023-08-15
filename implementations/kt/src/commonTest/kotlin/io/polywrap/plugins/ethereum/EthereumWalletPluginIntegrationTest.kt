@@ -52,7 +52,7 @@ class EthereumWalletPluginIntegrationTest {
             args = args
         )
         assertNull(result.exceptionOrNull())
-        val chainId = result.getOrThrow().substring(2).toBigInteger(16).toString()
+        val chainId = result.getOrThrow().replace("\"", "").substring(2).toBigInteger(16).toString()
         assertEquals("56", chainId)
     }
 
@@ -68,7 +68,7 @@ class EthereumWalletPluginIntegrationTest {
             args = args
         )
         assertNull(result.exceptionOrNull())
-        assertTrue(result.getOrThrow().toBigInteger() > 0.toBigInteger())
+        assertTrue(result.getOrThrow().replace("\"", "").toBigInteger() > 0.toBigInteger())
     }
 
     @Test
@@ -129,7 +129,7 @@ class EthereumWalletPluginIntegrationTest {
         assertNull(result.exceptionOrNull())
         assertEquals(
             "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
-            result.getOrThrow()
+            result.getOrThrow().replace("\"", "")
         )
     }
 
@@ -145,7 +145,7 @@ class EthereumWalletPluginIntegrationTest {
             args = args
         )
         assertNull(result.exceptionOrNull())
-        assertEquals(0, result.getOrThrow().toBigInteger().toLong())
+        assertEquals(0, result.getOrThrow().replace("\"", "").toBigInteger().toLong())
     }
 
     @Test
@@ -202,7 +202,7 @@ class EthereumWalletPluginIntegrationTest {
         assertNull(result.exceptionOrNull())
         assertEquals(
             "0x12bdd486cb42c3b3c414bb04253acfe7d402559e7637562987af6bd78508f38623c1cc09880613762cc913d49fd7d3c091be974c0dee83fb233300b6b58727311c",
-            result.getOrThrow()
+            result.getOrThrow().replace("\"", "")
         )
     }
 }
