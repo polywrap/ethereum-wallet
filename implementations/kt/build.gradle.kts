@@ -28,8 +28,7 @@ kotlin {
         publishLibraryVariants("release")
     }
 
-//    val kethereumVersion = "0.85.7"
-    val kethereumVersion = "PR149-SNAPSHOT"
+    val kethereumVersion = "0.86.0"
 
     sourceSets {
         val commonMain by getting {
