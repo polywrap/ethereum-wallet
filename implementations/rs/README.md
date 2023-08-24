@@ -1,0 +1,1 @@
+The implementation of this plugin can be found in https://github.com/polywrap/rust-client/tree/main/packages/plugins/ethereum-wallet
