@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.polywrap.plugins"
-version = "0.10.3"
+version = "0.10.4"
 
 repositories {
     google()
@@ -33,7 +33,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("io.polywrap:polywrap-client:0.10.3")
+                implementation("io.polywrap:polywrap-client:0.10.4")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
                 implementation("com.github.walleth.kethereum:extensions_transactions:${kethereumVersion}")
